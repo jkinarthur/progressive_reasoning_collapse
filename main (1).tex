@@ -1,0 +1,1108 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{Progressive Reasoning Collapse in LLM-Based Generative Recommendation}}
+\author{John Kingsley Arthur}
+\date{}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\tr}{\operatorname{Tr}}
+\newcommand{\KL}{\operatorname{KL}}
+\newcommand{\TV}{\operatorname{TV}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Large Language Model (LLM)-based recommender systems increasingly employ layer- and token-level compression to reduce inference cost. Existing studies evaluate such compression primarily through ranking metrics and runtime, but do not examine whether the latent recommendation reasoning process itself is preserved. In this paper, we formulate a new problem, termed \emph{Progressive Reasoning Collapse (PRC)}, which captures the layerwise degeneration of multi-intent latent structure and the concurrent decay of sensitivity to informative historical evidence under compressed propagation. We formalize PRC in a generative recommendation setting, define collapse-sensitive quantities for latent intent geometry and evidence survival, and derive three theoretical results. First, under a compressed contractive propagation model, we prove monotonic decay of a reasoning-collapse score across depth. Second, we show that the influence of informative subsequences of user history decays geometrically after compression. Third, we establish the existence of a critical compression depth that separates a safe regime from a collapse regime. The resulting framework provides a rigorous theoretical foundation for understanding when efficient LLM-based recommendation remains structurally faithful and when it becomes reasoning-destructive.
+\end{abstract}
+
+\section{Introduction}
+
+LLM-based generative recommendation has recently emerged as a powerful paradigm for modeling user preferences through natural language prompts, sequence-conditioned generation, and unified token-based reasoning. However, the high computational cost of long-context inference has motivated the rapid development of acceleration strategies, including prompt compression, register-token substitution, hidden-state bottlenecking, KV-cache pruning, and layerwise summarization.
+
+These methods are usually justified by empirical gains in throughput, memory footprint, and standard ranking quality. Yet this perspective leaves a fundamental theoretical question unresolved:
+\begin{quote}
+\emph{When an LLM recommender is compressed for efficiency, does it preserve the latent reasoning structure by which user history is transformed into future-item predictions?}
+\end{quote}
+
+This paper argues that the answer is generally negative. We posit that efficient LLM-based recommendation can exhibit a new structural failure mode, called \emph{Progressive Reasoning Collapse (PRC)}, in which alternative intent trajectories, long-range historical evidence, and latent uncertainty are prematurely compressed into overly concentrated internal states. Crucially, this degeneration may occur even when top-$K$ recommendation quality appears largely preserved.
+
+The problem is therefore not merely one of accuracy-efficiency trade-off. Rather, it is a problem of \emph{reasoning preservation}. To formalize this, we introduce a geometric and dynamical theory of recommendation reasoning under compression. Our analysis is inspired by the broader idea that deep models can exhibit progressive layerwise collapse of representation geometry, but extends that intuition into a new setting: multi-intent, history-conditioned, generative recommendation under latent bottlenecks.
+
+\section{Contributions}
+
+The main contributions of this work are as follows.
+
+\begin{enumerate}[label=\textbf{C\arabic*.}]
+    \item We introduce \textbf{Progressive Reasoning Collapse (PRC)} as a new theoretical problem in LLM-based generative recommendation, capturing the collapse of latent multi-intent structure and the forgetting of informative user-history evidence under compression.
+    \item We provide a \textbf{formal mathematical problem definition} that models recommendation reasoning as a layerwise latent process and defines two central quantities: a reasoning-collapse score and an evidence-survival function.
+    \item We prove \textbf{Theorem 1}, showing that under compressed contractive propagation, the reasoning-collapse score decreases monotonically across depth after the compression point.
+    \item We prove \textbf{Theorem 2}, showing that the influence of an informative subsequence of user history decays geometrically across post-compression layers.
+    \item We prove \textbf{Theorem 3}, establishing the existence of a \emph{critical compression depth} that separates a safe regime from a collapse regime.
+    \item We derive corollaries on minority-intent erasure, compression-induced faithfulness gaps, and the irrecoverability of reasoning structure when compression occurs too early.
+\end{enumerate}
+
+\section{Problem Setting}
+
+Let $\U$ denote the set of users and $\I$ the set of items. For a given user, let
+\[
+H = (i_1, i_2, \dots, i_T) \in \I^T
+\]
+be the observed interaction history. Let $\mathcal{X}(H)$ denote a textual or tokenized prompt constructed from $H$, possibly with metadata, instructions, and contextual descriptors.
+
+We model an LLM-based generative recommender as
+\[
+\mathcal{F}_{\Theta}: \mathcal{X}(H) \mapsto p_{\Theta}(\cdot \mid H),
+\]
+where $p_{\Theta}(\cdot \mid H) \in \Delta^{|\I|}$ is a distribution over next-item candidates and $\Theta$ denotes model parameters.
+
+Suppose the transformer has $L$ layers. Let
+\[
+z^{(l)}(H) \in \R^{d \times n_l}
+\]
+denote the hidden representation at layer $l$, where $d$ is the hidden dimension and $n_l$ is the number of active tokens or latent units at layer $l$.
+
+We assume that after some compression depth $k$, the model no longer propagates the full prompt state, but instead propagates a compressed summary or register state. Our central question is whether this compression preserves the latent structure required for faithful recommendation reasoning.
+
+\section{Formal Problem Definition}
+
+\subsection{Latent Multi-Intent Structure}
+
+Recommendation differs fundamentally from ordinary classification because multiple future items may simultaneously be plausible. To capture this, we model the hidden state at each layer as inducing a finite set of latent intent modes.
+
+Let
+\[
+\mathcal{M}^{(l)}(H) = \{\mu_1^{(l)}, \mu_2^{(l)}, \dots, \mu_K^{(l)}\} \subset \R^d
+\]
+denote the set of layer-$l$ latent intent centers associated with history $H$. These may be interpreted as cluster centers of plausible future-preference states.
+
+Let $h_{k,i}^{(l)} \in \R^d$ denote the $i$th latent vector assigned to intent mode $k$ at layer $l$, and let
+\[
+\mu_k^{(l)} = \frac{1}{n_k}\sum_{i=1}^{n_k} h_{k,i}^{(l)}
+\]
+be the within-intent mean. Let the global mean be
+\[
+\mu_G^{(l)} = \frac{1}{K}\sum_{k=1}^K \mu_k^{(l)}.
+\]
+
+We define the within-intent covariance
+\[
+\Sigma_W^{(l)} =
+\frac{1}{N}
+\sum_{k=1}^K \sum_{i=1}^{n_k}
+\bigl(h_{k,i}^{(l)} - \mu_k^{(l)}\bigr)\bigl(h_{k,i}^{(l)} - \mu_k^{(l)}\bigr)^\top,
+\]
+where $N=\sum_{k=1}^K n_k$, and the between-intent covariance
+\[
+\Sigma_B^{(l)} =
+\frac{1}{K}
+\sum_{k=1}^K
+\bigl(\mu_k^{(l)} - \mu_G^{(l)}\bigr)\bigl(\mu_k^{(l)} - \mu_G^{(l)}\bigr)^\top.
+\]
+
+\begin{definition}[Reasoning-collapse score]
+The layerwise reasoning-collapse score is defined as
+\[
+\mathcal{R}(l) =
+\frac{\tr(\Sigma_W^{(l)})}{\tr(\Sigma_B^{(l)})}.
+\]
+A smaller value of $\mathcal{R}(l)$ indicates stronger concentration of latent representations relative to intent separation.
+\end{definition}
+
+\begin{definition}[Reasoning collapse]
+A layer-$l$ latent representation exhibits \emph{reasoning collapse} if
+\[
+\mathcal{R}(l) \to 0
+\qquad \text{and} \qquad
+|\mathcal{M}^{(l)}(H)| \to 1,
+\]
+that is, within-intent dispersion vanishes and effective multi-intent diversity degenerates toward a single dominant mode.
+\end{definition}
+
+\subsection{Evidence Survival}
+
+Let $\tau \subset H$ denote an informative subsequence of the user history. This may correspond, for example, to a long-range interest signal, a minority-intent subsequence, or a recent shift in user preference.
+
+Let $p^{(l)}(\cdot \mid H)$ denote the next-item distribution induced by layer $l$ under the full history $H$, and let $p^{(l)}(\cdot \mid H \setminus \tau)$ denote the corresponding distribution when $\tau$ is removed.
+
+\begin{definition}[Evidence-survival function]
+The layerwise evidence-survival function for subsequence $\tau$ is defined as
+\[
+S_l(\tau)
+=
+D\!\left(
+p^{(l)}(\cdot \mid H),
+p^{(l)}(\cdot \mid H \setminus \tau)
+\right),
+\]
+where $D$ is a divergence on the probability simplex, such as total variation, Jensen--Shannon divergence, or a norm-equivalent distance.
+\end{definition}
+
+\begin{definition}[Evidence collapse]
+Evidence collapse occurs at layer $l$ if
+\[
+S_l(\tau) \to 0
+\]
+for an informative subsequence $\tau$. In this case, the model becomes progressively insensitive to the contribution of $\tau$.
+\end{definition}
+
+\subsection{Compression-aware Problem Statement}
+
+Let compression be applied at layer $k$, so that deeper layers operate on a compressed latent representation instead of the full prompt representation. The problem studied in this paper is:
+
+\begin{quote}
+\emph{Characterize, measure, and theoretically analyze when layerwise compression in LLM-based generative recommendation causes progressive collapse of latent multi-intent geometry and progressive decay of informative-history sensitivity.}
+\end{quote}
+
+More precisely, we seek to determine:
+\begin{enumerate}[label=(\roman*)]
+    \item whether $\mathcal{R}(l)$ decreases monotonically after compression,
+    \item whether $S_l(\tau)$ decreases monotonically after compression,
+    \item whether there exists a critical compression depth $k^*$ that separates a safe regime from a collapse regime.
+\end{enumerate}
+
+\section{Compressed Propagation Model}
+
+To obtain rigorous theoretical results, we adopt a surrogate post-compression dynamics model. This is standard in theoretical analysis: rather than attempting to prove statements for the full nonlinear transformer directly, we analyze an effective propagation model induced by compression.
+
+For each intent $k$ and latent point $i$, suppose that after compression depth $k_0$ the hidden state evolves according to
+\[
+h_{k,i}^{(l+1)} = A_l h_{k,i}^{(l)} + b_l + \varepsilon_{k,i}^{(l)},
+\qquad l \ge k_0,
+\]
+where:
+\begin{itemize}
+    \item $A_l \in \R^{d \times d}$ is the effective linearized post-compression operator,
+    \item $b_l \in \R^d$ is a shared bias term,
+    \item $\varepsilon_{k,i}^{(l)} \in \R^d$ is a zero-mean residual perturbation.
+\end{itemize}
+
+This model captures the fact that once a full prompt is replaced by a compact register-like representation, subsequent layers operate on a lower-information latent state with potentially contractive dynamics.
+
+\section{Theorem 1: Monotonic Progressive Reasoning Collapse}
+
+\subsection{Assumptions}
+
+\begin{assumption}[Contractive within-intent dynamics]
+For each $l \ge k_0$, there exists $0 < \alpha_l < 1$ such that
+\[
+\E \left\|A_l\bigl(h_{k,i}^{(l)} - \mu_k^{(l)}\bigr)\right\|^2
+\le
+\alpha_l \,
+\E \left\|h_{k,i}^{(l)} - \mu_k^{(l)}\right\|^2.
+\]
+\end{assumption}
+
+\begin{assumption}[Non-destructive between-intent preservation]
+For each $l \ge k_0$, there exists $\beta_l > 0$ such that
+\[
+\E \left\|A_l\bigl(\mu_k^{(l)} - \mu_G^{(l)}\bigr)\right\|^2
+\ge
+\beta_l \,
+\E \left\|\mu_k^{(l)} - \mu_G^{(l)}\right\|^2.
+\]
+\end{assumption}
+
+\begin{assumption}[Bounded centered residual noise]
+For each $l \ge k_0$, there exists $\sigma_l^2 \ge 0$ such that
+\[
+\E \|\varepsilon_{k,i}^{(l)}\|^2 \le \sigma_l^2,
+\qquad
+\E[\varepsilon_{k,i}^{(l)}]=0,
+\]
+and residuals are independent across intents and samples.
+\end{assumption}
+
+\begin{assumption}[Collapse-dominant regime]
+For each $l \ge k_0$, there exist constants $c_1,c_2>0$ such that
+\[
+\alpha_l + \frac{c_1 \sigma_l^2}{\tr(\Sigma_W^{(l)})}
+<
+\beta_l - \frac{c_2 \sigma_l^2}{\tr(\Sigma_B^{(l)})}.
+\]
+\end{assumption}
+
+\subsection{Statement}
+
+\begin{theorem}[Monotonic Progressive Reasoning Collapse]
+Under Assumptions 1--4, for every layer $l \ge k_0$ there exists $0<\rho_l<1$ such that
+\[
+\mathcal{R}(l+1) \le \rho_l \,\mathcal{R}(l).
+\]
+Consequently,
+\[
+\mathcal{R}(l+1) < \mathcal{R}(l),
+\qquad l \ge k_0,
+\]
+and the compressed recommender exhibits monotonic progressive reasoning collapse after the compression depth.
+If additionally $\sup_{l\ge k_0}\rho_l \le \rho <1$, then
+\[
+\mathcal{R}(l) \le \rho^{\,l-k_0}\mathcal{R}(k_0),
+\qquad l \ge k_0.
+\]
+\end{theorem}
+
+\subsection{Proof}
+
+\begin{proof}
+We analyze the evolution of the within-intent and between-intent covariances separately.
+
+\paragraph{Step 1: Evolution of within-intent deviations.}
+For a fixed intent $k$,
+\[
+h_{k,i}^{(l+1)} - \mu_k^{(l+1)}
+=
+A_l h_{k,i}^{(l)} + b_l + \varepsilon_{k,i}^{(l)}
+-
+\left(
+A_l \mu_k^{(l)} + b_l + \bar{\varepsilon}_k^{(l)}
+\right),
+\]
+where
+\[
+\bar{\varepsilon}_k^{(l)} = \frac{1}{n_k}\sum_{i=1}^{n_k}\varepsilon_{k,i}^{(l)}.
+\]
+Hence
+\[
+h_{k,i}^{(l+1)} - \mu_k^{(l+1)}
+=
+A_l\bigl(h_{k,i}^{(l)} - \mu_k^{(l)}\bigr)
++
+\bigl(\varepsilon_{k,i}^{(l)} - \bar{\varepsilon}_k^{(l)}\bigr).
+\]
+
+Taking squared norms and expectations, and using independence and centering of the residual terms, we obtain
+\[
+\E\left\|
+h_{k,i}^{(l+1)} - \mu_k^{(l+1)}
+\right\|^2
+\le
+\E\left\|
+A_l(h_{k,i}^{(l)} - \mu_k^{(l)})
+\right\|^2
++
+c_1\sigma_l^2
+\]
+for a constant $c_1>0$ absorbing the variance of the centered residual term.
+
+By Assumption 1,
+\[
+\E\left\|
+h_{k,i}^{(l+1)} - \mu_k^{(l+1)}
+\right\|^2
+\le
+\alpha_l
+\E\left\|
+h_{k,i}^{(l)} - \mu_k^{(l)}
+\right\|^2
++
+c_1 \sigma_l^2.
+\]
+Averaging over $k$ and $i$ yields
+\[
+\tr(\Sigma_W^{(l+1)})
+\le
+\alpha_l \tr(\Sigma_W^{(l)}) + c_1 \sigma_l^2.
+\]
+
+\paragraph{Step 2: Evolution of between-intent deviations.}
+Similarly,
+\[
+\mu_k^{(l+1)} - \mu_G^{(l+1)}
+=
+A_l(\mu_k^{(l)} - \mu_G^{(l)})
++
+(\bar{\varepsilon}_k^{(l)} - \bar{\varepsilon}_G^{(l)}),
+\]
+where $\bar{\varepsilon}_G^{(l)}$ is the global average residual.
+
+Taking squared norms and expectations gives
+\[
+\E\left\|
+\mu_k^{(l+1)} - \mu_G^{(l+1)}
+\right\|^2
+\ge
+\E\left\|
+A_l(\mu_k^{(l)} - \mu_G^{(l)})
+\right\|^2
+-
+c_2 \sigma_l^2,
+\]
+for some constant $c_2>0$.
+
+By Assumption 2,
+\[
+\E\left\|
+\mu_k^{(l+1)} - \mu_G^{(l+1)}
+\right\|^2
+\ge
+\beta_l
+\E\left\|
+\mu_k^{(l)} - \mu_G^{(l)}
+\right\|^2
+-
+c_2 \sigma_l^2.
+\]
+Averaging over $k$ yields
+\[
+\tr(\Sigma_B^{(l+1)})
+\ge
+\beta_l \tr(\Sigma_B^{(l)}) - c_2 \sigma_l^2.
+\]
+
+\paragraph{Step 3: Ratio recursion.}
+By definition,
+\[
+\mathcal{R}(l+1)
+=
+\frac{\tr(\Sigma_W^{(l+1)})}{\tr(\Sigma_B^{(l+1)})}
+\le
+\frac{
+\alpha_l \tr(\Sigma_W^{(l)}) + c_1 \sigma_l^2
+}{
+\beta_l \tr(\Sigma_B^{(l)}) - c_2 \sigma_l^2
+}.
+\]
+Dividing numerator and denominator by $\tr(\Sigma_B^{(l)})$ yields
+\[
+\mathcal{R}(l+1)
+\le
+\frac{
+\alpha_l \mathcal{R}(l) + \frac{c_1 \sigma_l^2}{\tr(\Sigma_B^{(l)})}
+}{
+\beta_l - \frac{c_2 \sigma_l^2}{\tr(\Sigma_B^{(l)})}
+}.
+\]
+
+Under Assumption 4, the effective contraction in the numerator dominates any degradation in the denominator, so there exists $0<\rho_l<1$ such that
+\[
+\mathcal{R}(l+1) \le \rho_l \mathcal{R}(l).
+\]
+Thus $\mathcal{R}(l)$ decreases monotonically after the compression depth. The exponential bound follows immediately by recursive application when $\rho_l \le \rho < 1$ uniformly.
+\end{proof}
+
+\section{Theorem 2: Evidence Survival Decay Under Compression}
+
+\subsection{Additional Setup}
+
+Let $z_H^{(l)} \in \R^d$ denote the compressed latent state at layer $l$ under the full history $H$, and let $z_{-\tau}^{(l)} \in \R^d$ denote the corresponding compressed latent state when informative subsequence $\tau$ is removed.
+
+Define the latent evidence gap
+\[
+\delta^{(l)}(\tau) = z_H^{(l)} - z_{-\tau}^{(l)}.
+\]
+
+Assume the post-compression latent dynamics satisfy
+\[
+z_H^{(l+1)} = A_l z_H^{(l)} + \xi_H^{(l)},
+\qquad
+z_{-\tau}^{(l+1)} = A_l z_{-\tau}^{(l)} + \xi_{-\tau}^{(l)},
+\qquad l \ge k_0.
+\]
+Then
+\[
+\delta^{(l+1)}(\tau)
+=
+A_l \delta^{(l)}(\tau)
++
+\eta^{(l)}(\tau),
+\]
+where
+\[
+\eta^{(l)}(\tau)
+=
+\xi_H^{(l)} - \xi_{-\tau}^{(l)}.
+\]
+
+\subsection{Assumptions}
+
+\begin{assumption}[Contractive compressed propagation]
+For each $l \ge k_0$, there exists $0<\gamma_l<1$ such that
+\[
+\|A_l v\| \le \gamma_l \|v\|,
+\qquad \forall v \in \R^d.
+\]
+\end{assumption}
+
+\begin{assumption}[Bounded evidence-specific perturbation]
+For each $l \ge k_0$, there exists $\nu_l \ge 0$ such that
+\[
+\E\|\eta^{(l)}(\tau)\| \le \nu_l.
+\]
+\end{assumption}
+
+\begin{assumption}[Lipschitz readout]
+There exists $L_g>0$ such that for any latent states $z_1,z_2$,
+\[
+D\!\left(p(\cdot\mid z_1), p(\cdot\mid z_2)\right)
+\le
+L_g \|z_1 - z_2\|.
+\]
+\end{assumption}
+
+\begin{assumption}[Evidence-contraction dominance]
+For each $l \ge k_0$,
+\[
+(1-\gamma_l)\E\|\delta^{(l)}(\tau)\| > \nu_l.
+\]
+\end{assumption}
+
+\subsection{Statement}
+
+\begin{theorem}[Evidence Survival Decay Under Compression]
+Under Assumptions 5--8, for every informative subsequence $\tau$ and every $l \ge k_0$,
+\[
+S_{l+1}(\tau) \le \kappa_l S_l(\tau) + \epsilon_l,
+\]
+where $0<\kappa_l<1$ and $\epsilon_l \ge 0$ depends on the perturbation level $\nu_l$.
+If $\epsilon_l=0$, then
+\[
+S_{l+1}(\tau) < S_l(\tau),
+\qquad l \ge k_0,
+\]
+so the evidence-survival function decreases monotonically after compression.
+If additionally $\sup_{l\ge k_0}\kappa_l \le \kappa <1$ and $\sup_{l\ge k_0}\epsilon_l \le \epsilon$, then
+\[
+S_l(\tau)
+\le
+\kappa^{\,l-k_0} S_{k_0}(\tau)
++
+\frac{1-\kappa^{\,l-k_0}}{1-\kappa}\epsilon,
+\qquad l \ge k_0.
+\]
+\end{theorem}
+
+\subsection{Proof}
+
+\begin{proof}
+Starting from the latent evidence gap recursion,
+\[
+\delta^{(l+1)}(\tau)
+=
+A_l \delta^{(l)}(\tau) + \eta^{(l)}(\tau),
+\]
+we take norms and expectations:
+\[
+\E\|\delta^{(l+1)}(\tau)\|
+\le
+\E\|A_l\delta^{(l)}(\tau)\| + \E\|\eta^{(l)}(\tau)\|.
+\]
+By Assumptions 5 and 6,
+\[
+\E\|\delta^{(l+1)}(\tau)\|
+\le
+\gamma_l \E\|\delta^{(l)}(\tau)\| + \nu_l.
+\]
+
+Next, by Assumption 7,
+\[
+S_{l+1}(\tau)
+=
+D\!\left(p^{(l+1)}(\cdot\mid H), p^{(l+1)}(\cdot\mid H\setminus \tau)\right)
+\le
+L_g \|\delta^{(l+1)}(\tau)\|.
+\]
+Taking expectations,
+\[
+S_{l+1}(\tau)
+\le
+L_g \gamma_l \E\|\delta^{(l)}(\tau)\| + L_g \nu_l.
+\]
+
+Since
+\[
+S_l(\tau) \le L_g \|\delta^{(l)}(\tau)\|,
+\]
+we obtain a recursion of the form
+\[
+S_{l+1}(\tau) \le \kappa_l S_l(\tau) + \epsilon_l,
+\]
+where one may take $\kappa_l=\gamma_l$ up to a norm-equivalence constant and $\epsilon_l=L_g\nu_l$.
+
+If $\epsilon_l=0$, then $\nu_l=0$ and we have
+\[
+S_{l+1}(\tau) \le \kappa_l S_l(\tau),
+\qquad 0<\kappa_l<1,
+\]
+so $S_l(\tau)$ decreases monotonically.
+
+For the uniform case,
+\[
+S_{l+1}(\tau) \le \kappa S_l(\tau) + \epsilon,
+\]
+which unrolls to
+\[
+S_l(\tau)
+\le
+\kappa^{\,l-k_0} S_{k_0}(\tau)
++
+\sum_{j=0}^{l-k_0-1}\kappa^j \epsilon
+=
+\kappa^{\,l-k_0} S_{k_0}(\tau)
++
+\frac{1-\kappa^{\,l-k_0}}{1-\kappa}\epsilon.
+\]
+This proves the theorem.
+\end{proof}
+
+\begin{corollary}[Minority-intent erasure]
+Suppose $\tau$ corresponds to a minority but recommendation-relevant intent component. If $S_{k_0}(\tau)>0$ and the conditions of Theorem 2 hold with sufficiently small residual floor, then for sufficiently deep post-compression propagation,
+\[
+S_l(\tau)\to 0.
+\]
+Thus minority-interest evidence becomes asymptotically invisible to the recommender, even when dominant-intent recommendation remains stable.
+\end{corollary}
+
+\begin{corollary}[Compression-induced faithfulness gap]
+Let $\hat{y}_H^{(l)}$ and $\hat{y}_{-\tau}^{(l)}$ be the top-ranked recommendations at layer $l$ under histories $H$ and $H\setminus\tau$, respectively. If $S_l(\tau)\to 0$, then the recommender becomes asymptotically insensitive to the removal of $\tau$, implying a loss of explanation faithfulness with respect to that evidence.
+\end{corollary}
+
+\section{Theorem 3: Critical Compression Depth}
+
+\subsection{Compression-depth-dependent contractions}
+
+Let compression be applied at depth $k$. Denote by $\mathcal{R}^{(k)}_L$ the final reasoning-collapse score under compression at depth $k$, and by $S_L^{(k)}(\tau)$ the final evidence-survival value under compression at depth $k$.
+
+Assume that after compression at depth $k$, the contractions appearing in Theorems 1 and 2 depend on $k$:
+\[
+\mathcal{R}(l+1) \le \rho_l(k)\,\mathcal{R}(l),
+\qquad l \ge k,
+\]
+and
+\[
+S_{l+1}(\tau) \le \kappa_l(k)\,S_l(\tau) + \epsilon_l(k),
+\qquad l \ge k.
+\]
+
+\subsection{Assumptions}
+
+\begin{assumption}[Earlier compression is more severe]
+For any $k_1<k_2$,
+\[
+\rho_l(k_1) \le \rho_l(k_2),
+\qquad
+\kappa_l(k_1) \le \kappa_l(k_2),
+\]
+for all relevant $l$, with strict inequality for at least one downstream layer.
+\end{assumption}
+
+\begin{assumption}[Minimal viable reasoning budget]
+There exist thresholds
+\[
+\underline{\mathcal{R}} > 0,
+\qquad
+\underline{S}(\tau) > 0
+\]
+such that reasoning is considered preserved only if
+\[
+\mathcal{R}^{(k)}_L \ge \underline{\mathcal{R}}
+\quad \text{and} \quad
+S^{(k)}_L(\tau) \ge \underline{S}(\tau)
+\]
+for relevant $\tau$.
+\end{assumption}
+
+\begin{assumption}[Uniform depth-wise bounds]
+There exist nondecreasing functions $\bar{\rho}(k)\in(0,1)$ and $\bar{\kappa}(k)\in(0,1)$ such that
+\[
+\rho_l(k)\le \bar{\rho}(k),
+\qquad
+\kappa_l(k)\le \bar{\kappa}(k)
+\]
+for all $l\ge k$.
+\end{assumption}
+
+\begin{assumption}[Small cumulative perturbation floor]
+For each $k$,
+\[
+\sum_{j=k}^{L-1}\bar{\kappa}(k)^{\,L-1-j}\epsilon_j(k) \le \bar{\epsilon}(k),
+\]
+where $\bar{\epsilon}(k)$ is sufficiently small.
+\end{assumption}
+
+\begin{definition}[Critical compression depth]
+The critical compression depth is defined as
+\[
+k^*
+=
+\min
+\left\{
+k \in \{1,\dots,L\} :
+\mathcal{R}^{(k)}_L \ge \underline{\mathcal{R}}
+\ \text{and}\
+S^{(k)}_L(\tau)\ge \underline{S}(\tau)
+\ \forall \tau \in \T
+\right\}.
+\]
+\end{definition}
+
+\subsection{Statement}
+
+\begin{theorem}[Critical Compression Depth]
+Assume Theorems 1 and 2 hold for every compression depth $k$, and Assumptions 9--12 hold. Then there exists a critical compression depth $k^*\in\{1,\dots,L\}$ such that:
+
+\begin{enumerate}[label=(\roman*)]
+    \item \textbf{Safe regime:} for every $k > k^*$,
+    \[
+    \mathcal{R}^{(k)}_L \ge \underline{\mathcal{R}}
+    \quad \text{and} \quad
+    S^{(k)}_L(\tau)\ge \underline{S}(\tau)
+    \quad \forall \tau \in \T.
+    \]
+    \item \textbf{Collapse regime:} for every $k \le k^*$, at least one of the following holds:
+    \[
+    \mathcal{R}^{(k)}_L < \underline{\mathcal{R}},
+    \]
+    or
+    \[
+    S^{(k)}_L(\tau) < \underline{S}(\tau)
+    \quad \text{for some } \tau \in \T.
+    \]
+    \item \textbf{Monotone phase transition:} if $k_1<k_2$, then
+    \[
+    \mathcal{R}^{(k_1)}_L \le \mathcal{R}^{(k_2)}_L,
+    \qquad
+    S^{(k_1)}_L(\tau) \le S^{(k_2)}_L(\tau).
+    \]
+\end{enumerate}
+Thus earlier compression cannot outperform later compression in preserving reasoning structure.
+\end{theorem}
+
+\subsection{Proof}
+
+\begin{proof}
+We first bound the final reasoning-collapse score under compression at depth $k$. By repeated application of Theorem 1,
+\[
+\mathcal{R}^{(k)}_L
+\le
+\left(
+\prod_{l=k}^{L-1}\rho_l(k)
+\right)\mathcal{R}(k).
+\]
+Using Assumption 11,
+\[
+\mathcal{R}^{(k)}_L
+\le
+\bar{\rho}(k)^{\,L-k}\mathcal{R}(k).
+\]
+Since $\bar{\rho}(k)$ is nondecreasing in $k$, earlier compression yields stronger contraction and hence smaller final reasoning-preservation values.
+
+Similarly, by unrolling the recursion in Theorem 2,
+\[
+S^{(k)}_L(\tau)
+\le
+\left(
+\prod_{l=k}^{L-1}\kappa_l(k)
+\right)S_k(\tau)
++
+\sum_{j=k}^{L-1}
+\left(
+\prod_{l=j+1}^{L-1}\kappa_l(k)
+\right)\epsilon_j(k).
+\]
+Using Assumptions 11 and 12,
+\[
+S^{(k)}_L(\tau)
+\le
+\bar{\kappa}(k)^{\,L-k} S_k(\tau) + \bar{\epsilon}(k).
+\]
+Again, earlier compression leads to stronger post-compression evidence decay.
+
+Now define the set of safe compression depths
+\[
+\mathcal{K}_{\mathrm{safe}}
+=
+\left\{
+k :
+\mathcal{R}^{(k)}_L \ge \underline{\mathcal{R}}
+\ \text{and}\
+S^{(k)}_L(\tau)\ge \underline{S}(\tau)
+\ \forall \tau \in \T
+\right\}.
+\]
+By monotonicity with respect to $k$, this set is an upper-tail subset of $\{1,\dots,L\}$. Since the set of candidate depths is finite, there exists a smallest safe depth if $\mathcal{K}_{\mathrm{safe}}$ is nonempty. Denote its predecessor by $k^*$. Then:
+\begin{itemize}
+    \item all $k>k^*$ are safe,
+    \item all $k\le k^*$ are unsafe.
+\end{itemize}
+This proves the existence of the critical compression depth and the claimed phase-transition structure.
+\end{proof}
+
+\begin{corollary}[Early-compression irrecoverability]
+If compression is applied at or before the critical compression depth $k^*$, then no downstream sequence of post-compression operators satisfying the stated contraction assumptions can simultaneously recover both latent intent diversity and informative-history sensitivity above the required thresholds.
+\end{corollary}
+
+\section{Experiments}
+
+This section is designed to empirically validate the central claims of the paper. In particular, the experiments are constructed to answer the following questions:
+
+\begin{enumerate}[label=\textbf{RQ\arabic*.}]
+    \item Does progressive reasoning collapse actually emerge in LLM-based generative recommendation under compression?
+    \item Does the proposed method, CARR, mitigate collapse while preserving computational efficiency?
+    \item Is there empirical evidence for a critical compression depth, as predicted by the theory?
+    \item How do latent intent geometry and evidence survival behave across layers under different compression strategies?
+\end{enumerate}
+
+\subsection{Datasets}
+
+To ensure broad validity, experiments should be conducted on multiple sequential recommendation benchmarks with varying sequence lengths, sparsity levels, and semantic richness. Suitable datasets include:
+
+\begin{itemize}
+    \item \textbf{MovieLens-1M}: a classic benchmark with relatively dense user-item interactions.
+    \item \textbf{Amazon Beauty}: a sparse sequential recommendation dataset with strong domain-specific behavior.
+    \item \textbf{Amazon Toys}: a dataset with longer-tail item distributions and more heterogeneous user interests.
+    \item \textbf{Yelp}: suitable for evaluating multi-intent and context-sensitive recommendation.
+    \item \textbf{MIND or similar news recommendation dataset}: useful for testing temporally evolving user intent.
+\end{itemize}
+
+For each dataset, the interaction history of each user is converted into a textual or structured prompt suitable for LLM-based recommendation. Standard chronological train/validation/test splits are adopted.
+
+\subsection{Baselines}
+
+We compare CARR against the following categories of methods.
+
+\subsubsection{LLM-based recommendation baselines}
+\begin{itemize}
+    \item \textbf{Full-LLM}: the original LLM recommender without compression.
+    \item \textbf{Fixed-Register Compression}: a compressed LLM recommender with fixed compression depth and fixed number of register tokens.
+    \item \textbf{Prompt-Pruned LLMRec}: a variant using prompt truncation or token-level pruning.
+    \item \textbf{Layer-Skipping LLMRec}: a variant using aggressive late-layer simplification.
+\end{itemize}
+
+\subsubsection{Sequential recommendation baselines}
+\begin{itemize}
+    \item \textbf{SASRec}
+    \item \textbf{BERT4Rec}
+    \item \textbf{GRU4Rec}
+\end{itemize}
+
+These conventional models are included to provide standard recommendation reference points, although the main comparison is against compressed LLM-based methods.
+
+\subsection{Evaluation Metrics}
+
+Because the main thesis of this work is that efficiency-only evaluation is insufficient, we use both \emph{standard recommendation metrics} and \emph{collapse-sensitive metrics}.
+
+\subsubsection{Recommendation quality}
+\begin{itemize}
+    \item Hit Ratio at $K$ (HR@$K$)
+    \item Recall@$K$
+    \item NDCG@$K$
+    \item MRR
+\end{itemize}
+
+\subsubsection{Efficiency metrics}
+\begin{itemize}
+    \item Inference latency
+    \item Throughput (samples per second)
+    \item GPU memory consumption
+    \item KV-cache size or effective memory footprint
+\end{itemize}
+
+\subsubsection{Collapse-sensitive metrics}
+\begin{itemize}
+    \item \textbf{Reasoning-collapse score}:
+    \[
+    \widehat{\mathcal{R}}(l)=
+    \frac{\tr(\widehat{\Sigma}_W^{(l)})}{\tr(\widehat{\Sigma}_B^{(l)})}
+    \]
+    \item \textbf{Evidence-survival score}:
+    \[
+    \widehat{S}_l(\tau)=
+    D\!\left(
+    \hat{p}^{(l)}(\cdot \mid H),
+    \hat{p}^{(l)}(\cdot \mid H \setminus \tau)
+    \right)
+    \]
+    \item \textbf{Intent diversity}: the number or entropy of active latent intent clusters at each layer.
+    \item \textbf{Counterfactual stability}: divergence between recommendations under full history and history with removed subsequences.
+    \item \textbf{Calibration and diversity}: to verify whether hidden collapse produces broader decision-quality degradation.
+\end{itemize}
+
+
+\subsection{Algorithmic Framework of CARR}
+
+Algorithm~\ref{alg:carr} presents the full procedure of the proposed \textbf{Collapse-Aware Register Recommendation (CARR)} framework.
+
+\begin{algorithm}[t]
+\caption{Collapse-Aware Register Recommendation (CARR)}
+\label{alg:carr}
+\begin{algorithmic}[1]
+
+\Require User history $H$, prompt $\mathcal{X}(H)$, transformer layers $\{\Phi^{(l)}\}_{l=1}^L$, monitored layers $\mathcal{L}_m$, informative subsequences $\mathcal{T}$, thresholds $\delta_R,\delta_S,\eta$, maximum registers $m_{\max}$
+
+\Ensure Recommendation distribution $p_{\Theta}(\cdot \mid H)$, compression depth $k^*$, register width $m^*$
+
+\State $z^{(0)} \gets \mathcal{X}(H)$
+\State $k^* \gets L$, $m^* \gets n_L$
+
+\For{$l = 1$ to $L$}
+    \State $z^{(l)} \gets \Phi^{(l)}(z^{(l-1)})$
+
+    \If{$l \in \mathcal{L}_m$}
+
+        \State \textbf{Estimate latent intent structure}
+        \State $\widehat{\mathcal{M}}^{(l)} \gets \textsc{Cluster}(z^{(l)})$
+        \State Compute $\widehat{\Sigma}_W^{(l)}$, $\widehat{\Sigma}_B^{(l)}$
+
+        \State Compute reasoning-collapse score:
+        \[
+        \widehat{\mathcal{R}}(l) \gets
+        \frac{\operatorname{Tr}(\widehat{\Sigma}_W^{(l)})}{\operatorname{Tr}(\widehat{\Sigma}_B^{(l)})}
+        \]
+
+        \State \textbf{Estimate evidence survival}
+        \For{each $\tau \in \mathcal{T}$}
+            \State Construct $H \setminus \tau$
+            \State Compute partial outputs $\hat{p}^{(l)}(\cdot \mid H)$ and $\hat{p}^{(l)}(\cdot \mid H \setminus \tau)$
+            \State $\widehat{S}_l(\tau) \gets D\!\left(\hat{p}^{(l)}(\cdot \mid H), \hat{p}^{(l)}(\cdot \mid H \setminus \tau)\right)$
+        \EndFor
+
+        \State \textbf{Compute collapse-risk score}
+        \State $\Gamma_l \gets \lambda_R \,\phi_R(\widehat{\mathcal{R}}(l)) + \lambda_S \,\phi_S(\{\widehat{S}_l(\tau)\})$
+
+        \If{$\Gamma_l \le \eta$}
+            \State $k^* \gets l$
+
+            \State \textbf{Determine adaptive register width}
+            \State $m^* \gets \psi(\widehat{\Sigma}_B^{(l)}, \widehat{\mathcal{R}}(l), \{\widehat{S}_l(\tau)\})$
+            \State $m^* \gets \min(\max(1, m^*), m_{\max})$
+
+            \State \textbf{Apply register compression}
+            \State $r^{(k^*)} \gets \mathcal{C}_{k^*,m^*}(z^{(k^*)})$
+
+            \For{$j = k^*+1$ to $L$}
+                \State $z^{(j)} \gets \Phi^{(j)}(r^{(j-1)})$
+            \EndFor
+
+            \State \textbf{break}
+        \EndIf
+
+    \EndIf
+\EndFor
+
+\State \textbf{Compute recommendation output}
+\State $p_{\Theta}(\cdot \mid H) \gets g(z^{(L)})$
+
+\State \textbf{Compute training loss}
+\[
+\mathcal{L} =
+\mathcal{L}_{\mathrm{rec}} +
+\lambda_1 \mathcal{L}_{\mathrm{collapse}} +
+\lambda_2 \mathcal{L}_{\mathrm{evidence}} +
+\lambda_3 \mathcal{L}_{\mathrm{compress}}
+\]
+
+\State Update $\Theta$ using gradient descent
+
+\State \Return $p_{\Theta}(\cdot \mid H), k^*, m^*$
+
+\end{algorithmic}
+\end{algorithm}
+\subsection{Implementation Details}
+
+The experiments may be implemented using a pretrained transformer backbone adapted for recommendation. Histories are tokenized into prompts containing ordered user-item interactions and optional metadata. The hidden states at monitored layers are extracted for collapse analysis.
+
+For CARR:
+\begin{itemize}
+    \item monitored layers are chosen from middle and late transformer blocks,
+    \item latent intent modes are estimated using clustering of hidden states,
+    \item informative subsequences $\tau$ are selected using one or more of the following strategies:
+    \begin{enumerate}
+        \item recency-based subsequence removal,
+        \item minority-interest subsequence removal,
+        \item attention-based important-token extraction,
+        \item random ablation as a control condition.
+    \end{enumerate}
+\end{itemize}
+
+Hyperparameters $\lambda_1,\lambda_2,\lambda_3$, thresholds $\delta_R,\delta_S$, and the collapse-risk threshold $\eta$ are tuned on the validation set.
+
+\subsection{Experimental Protocol}
+
+To test the theory rigorously, we propose the following protocol.
+
+\subsubsection{Experiment 1: Observing Progressive Reasoning Collapse}
+
+For each baseline compressed LLM recommender, we vary the compression depth $k$ and record:
+\begin{itemize}
+    \item recommendation performance,
+    \item layerwise reasoning-collapse score $\widehat{\mathcal{R}}(l)$,
+    \item layerwise evidence-survival score $\widehat{S}_l(\tau)$.
+\end{itemize}
+
+The goal is to determine whether both quantities decrease progressively after compression. According to the theory, earlier compression should produce more severe and more rapid collapse.
+
+\paragraph{Expected outcome.}
+We expect fixed aggressive compression to show:
+\begin{itemize}
+    \item monotonic decrease in $\widehat{\mathcal{R}}(l)$ after the compression point,
+    \item monotonic decrease in $\widehat{S}_l(\tau)$ for informative subsequences,
+    \item limited or delayed degradation in HR@K / NDCG@K, demonstrating that standard metrics may hide structural reasoning collapse.
+\end{itemize}
+
+\subsubsection{Experiment 2: Validating the Critical Compression Depth}
+
+For each dataset and baseline model, we sweep compression depth $k$ from early to late layers and compute:
+\[
+\widehat{\mathcal{R}}_L^{(k)}, \qquad \widehat{S}_L^{(k)}(\tau).
+\]
+
+We then estimate
+\[
+\hat{k}^*
+=
+\min
+\left\{
+k :
+\widehat{\mathcal{R}}_L^{(k)} \ge \underline{\mathcal{R}},
+\;
+\widehat{S}_L^{(k)}(\tau)\ge \underline{S}(\tau)
+\ \forall \tau \in \mathcal{T}
+\right\}.
+\]
+
+\paragraph{Expected outcome.}
+There should exist a clear empirical phase boundary:
+\begin{itemize}
+    \item when $k < \hat{k}^*$, compression is reasoning-destructive,
+    \item when $k \ge \hat{k}^*$, compression preserves structure more reliably.
+\end{itemize}
+
+This experiment directly validates Theorem 3.
+
+\subsubsection{Experiment 3: Comparing CARR with Fixed Compression}
+
+We compare CARR against fixed-depth and fixed-width compression baselines using both standard recommendation metrics and collapse-sensitive metrics.
+
+\paragraph{Expected outcome.}
+CARR should achieve:
+\begin{itemize}
+    \item similar or better recommendation quality than fixed compressed baselines,
+    \item significantly lower collapse severity,
+    \item significantly better evidence survival,
+    \item competitive latency and memory usage relative to compressed baselines,
+    \item clear efficiency gains relative to Full-LLM.
+\end{itemize}
+
+\subsubsection{Experiment 4: Ablation Studies}
+
+To isolate the contribution of each component, we evaluate:
+\begin{itemize}
+    \item \textbf{CARR w/o collapse regularizer}
+    \item \textbf{CARR w/o evidence-preservation regularizer}
+    \item \textbf{CARR w/o adaptive depth selection}
+    \item \textbf{CARR w/o adaptive register width}
+    \item \textbf{Full CARR}
+\end{itemize}
+
+\paragraph{Expected outcome.}
+Removing any component should worsen at least one of the following:
+\begin{itemize}
+    \item latent reasoning preservation,
+    \item evidence survival,
+    \item recommendation faithfulness,
+    \item efficiency-preservation balance.
+\end{itemize}
+
+\subsubsection{Experiment 5: Minority-Intent Preservation}
+
+To validate the corollary on minority-intent erasure, we identify user histories containing secondary but relevant interests and measure how well different models preserve recommendations associated with those minority signals.
+
+\paragraph{Expected outcome.}
+Aggressive fixed compression should disproportionately erase minority-interest evidence, whereas CARR should preserve it more effectively through delayed compression or multi-register allocation.
+
+\subsubsection{Experiment 6: Visualization of Layerwise Collapse}
+
+For interpretability, we visualize latent representations across layers using tools such as PCA, t-SNE, or UMAP. For selected user histories, we show:
+\begin{itemize}
+    \item the contraction of latent intent clusters after compression,
+    \item the divergence between full-history and history-ablated representations,
+    \item differences between fixed compression and CARR.
+\end{itemize}
+
+\paragraph{Expected outcome.}
+CARR should retain more separated intent geometry and larger evidence-induced divergence deeper into the network.
+
+\subsection{Statistical Validation}
+
+To ensure reliability, each experiment should be repeated over multiple random seeds. We recommend reporting:
+\begin{itemize}
+    \item mean and standard deviation,
+    \item paired significance tests between CARR and the strongest compressed baseline,
+    \item effect sizes where appropriate.
+\end{itemize}
+
+\subsection{How the Experiments Support the Theory}
+
+The experimental design is intentionally aligned with the theory:
+\begin{itemize}
+    \item Experiments 1 and 2 test the existence of progressive collapse and the critical compression boundary.
+    \item Experiment 3 shows that collapse-aware adaptation improves the balance between efficiency and reasoning preservation.
+    \item Experiments 4 and 5 validate the necessity of the individual components and the minority-intent implications of the theory.
+    \item Experiment 6 provides qualitative support for the geometric interpretation of reasoning collapse.
+\end{itemize}
+
+Thus, the empirical section does not merely benchmark the method; it also serves as a direct validation of the proposed theoretical framework.
+
+\section{Discussion}
+
+The three theorems jointly establish a coherent theory of reasoning preservation in efficient LLM-based recommendation.
+
+Theorem 1 shows that after compression, latent multi-intent geometry becomes progressively more concentrated. Theorem 2 shows that, at the same time, informative historical evidence becomes progressively less influential. Theorem 3 then shows that these two processes admit a threshold structure: there exists a depth beyond which compression is relatively safe and before which compression becomes structurally destructive.
+
+This perspective reframes efficient LLM recommendation. The central issue is not simply whether a compressed model remains accurate on average, but whether it remains \emph{faithful} to the latent intent manifold and \emph{sensitive} to the evidence that should justify its outputs.
+
+\section{Conclusion}
+
+This paper formulated \emph{Progressive Reasoning Collapse} as a new theoretical problem in LLM-based generative recommendation. We introduced a formal framework for modeling the layerwise collapse of latent multi-intent structure and the decay of informative-history influence under compression. We then derived three theoretical results: monotonic reasoning-collapse dynamics, evidence-survival decay, and the existence of a critical compression depth separating safe and collapse regimes.
+
+These results provide a principled foundation for future methods that are not only efficient, but also structurally faithful to the recommendation reasoning process they are meant to accelerate.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+
+\bibitem{placeholder1}
+Placeholder reference for LLM-based generative recommendation.
+
+\bibitem{placeholder2}
+Placeholder reference for efficient inference acceleration in LLM recommendation.
+
+\bibitem{placeholder3}
+Placeholder reference for neural collapse and progressive layerwise collapse.
+
+\end{thebibliography}
+
+\end{document}

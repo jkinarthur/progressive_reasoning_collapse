@@ -1,0 +1,49 @@
+# Exclude generated outputs (keep image small)
+data/
+results/
+checkpoints/
+figures/
+tables/
+logs/
+wandb/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# ML artefacts
+*.pth
+*.pt
+*.ckpt
+*.pkl
+*.npy
+*.npz
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Git
+.git/
+.gitignore
+
+# Paper (not needed in container)
+paper/
+template/
+example papers/
+main (1).tex

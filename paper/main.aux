@@ -1,0 +1,97 @@
+\relax 
+\citation{wu2024survey,lin2024rec}
+\citation{dai2023uncovering,bao2023tallrec}
+\citation{jiang2023longllmlingua}
+\citation{darcet2024vision}
+\citation{ge2024context}
+\citation{zhang2024h2o}
+\citation{kim2024compressed}
+\citation{papyan2020prevalence,zhu2021geometric}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Contributions}{1}{}\protected@file@percent }
+\citation{wu2024survey,fan2023reclm}
+\citation{geng2022p5}
+\citation{bao2023tallrec}
+\citation{li2023gpt4rec}
+\citation{jiang2023longllmlingua}
+\citation{zhang2024h2o}
+\citation{mu2024learning}
+\citation{darcet2024vision}
+\citation{papyan2020prevalence}
+\citation{zhu2021geometric,han2022neural}
+\citation{jacovi2020towards,lyu2024towards}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}LLM-Based Recommendation}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Efficient LLM Inference}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Neural Collapse}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}Faithfulness and Interpretability}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Problem Setting}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Formal Problem Definition}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Latent Multi-Intent Structure}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Evidence Survival}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Problem Statement}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Compressed Propagation Model}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Theorem 1: Monotonic Progressive Reasoning Collapse}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Assumptions}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Theorem 2: Evidence Survival Decay}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Theorem 3: Critical Compression Depth}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IX}CARR: Collapse-Aware Register Recommendation}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Algorithm Overview}{4}{}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces CARR Forward Pass}}{4}{}\protected@file@percent }
+\newlabel{alg:carr}{{1}{4}{}{algorithm.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Training Objective}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {X}Experiments}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-A}}Experimental Setup}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {X-A}1}Datasets}{4}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Layerwise Reasoning Collapse Score $\mathcal  {R}(l)$ on ML-1M}}{5}{}\protected@file@percent }
+\newlabel{tab:collapse}{{I}{5}{}{table.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Critical compression depth analysis showing phase transition between safe and collapse regimes. The critical depth $k^*=6$ for ML-1M is marked.}}{5}{}\protected@file@percent }
+\newlabel{fig:critical}{{1}{5}{}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {X-A}2}Baselines}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {X-A}3}Metrics}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {X-A}4}Implementation}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-B}}Experiment 1: Progressive Collapse Validation}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-C}}Experiment 2: Critical Depth Analysis}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-D}}Experiment 3: Comprehensive Comparison}{5}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces t-SNE visualization of latent representations at layer 12. (a) Full-LLM: distinct clusters preserved. (b) Fixed-Mid: collapsed to single cluster. (c) CARR: clusters maintained with compression.}}{5}{}\protected@file@percent }
+\newlabel{fig:tsne}{{2}{5}{}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-E}}Experiment 4: Ablation Studies}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-F}}Experiment 5: Minority-Intent Preservation}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-G}}Experiment 6: Latent Space Visualization}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {XI}Discussion}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Theoretical Implications}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-B}}Practical Implications}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-C}}Limitations}{5}{}\protected@file@percent }
+\bibcite{wu2024survey}{1}
+\bibcite{lin2024rec}{2}
+\bibcite{dai2023uncovering}{3}
+\bibcite{bao2023tallrec}{4}
+\bibcite{geng2022p5}{5}
+\bibcite{li2023gpt4rec}{6}
+\bibcite{jiang2023longllmlingua}{7}
+\bibcite{zhang2024h2o}{8}
+\bibcite{ge2024context}{9}
+\bibcite{mu2024learning}{10}
+\bibcite{darcet2024vision}{11}
+\bibcite{kim2024compressed}{12}
+\bibcite{papyan2020prevalence}{13}
+\bibcite{zhu2021geometric}{14}
+\bibcite{han2022neural}{15}
+\bibcite{jacovi2020towards}{16}
+\bibcite{lyu2024towards}{17}
+\bibcite{kang2018sasrec}{18}
+\bibcite{sun2019bert4rec}{19}
+\bibcite{hidasi2016gru4rec}{20}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Comprehensive Comparison Across Four Datasets}}{6}{}\protected@file@percent }
+\newlabel{tab:main}{{II}{6}{}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Collapse-Sensitive Metrics Comparison on ML-1M}}{6}{}\protected@file@percent }
+\newlabel{tab:collapse_metrics}{{III}{6}{}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Ablation Study on ML-1M}}{6}{}\protected@file@percent }
+\newlabel{tab:ablation}{{IV}{6}{}{table.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Minority vs. Majority Intent Performance (HR@10)}}{6}{}\protected@file@percent }
+\newlabel{tab:minority}{{V}{6}{}{table.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {XII}Conclusion}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Biographies}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{John Kingsley Arthur}{7}{}\protected@file@percent }
+\gdef \@abspage@last{7}

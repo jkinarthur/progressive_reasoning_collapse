@@ -1,0 +1,36 @@
+# Progressive Reasoning Collapse (PRC) Experiments
+# Requirements for IEEE TKDE Paper
+
+# Core Deep Learning
+torch>=2.0.0
+transformers>=4.30.0
+tokenizers>=0.13.0
+
+# Scientific Computing
+numpy>=1.24.0
+scipy>=1.10.0
+scikit-learn>=1.2.0
+
+# Data Processing
+pandas>=2.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Optional: UMAP for advanced visualization
+# umap-learn>=0.5.3
+
+# Experiment Management
+tqdm>=4.65.0
+
+# Optional: Weights & Biases for experiment tracking
+# wandb>=0.15.0
+
+# Jupyter support (optional)
+# ipykernel>=6.0.0
+# jupyter>=1.0.0
+
+# Testing (optional)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
