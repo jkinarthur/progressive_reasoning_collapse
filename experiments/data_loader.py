@@ -426,7 +426,17 @@ class RecommendationDataModule:
         """Load and prepare data"""
         
         # Download if needed
-        download_dataset(self.config.name.lower().replace(" ", "-").replace("-1m", "-1m"), DATA_DIR)
+        # Map config name to dataset key used in DATASET_URLS
+        name_lower = self.config.name.lower()
+        if "movielens" in name_lower or "ml-1m" in name_lower:
+            dataset_key = "ml-1m"
+        elif "beauty" in name_lower:
+            dataset_key = "amazon-beauty"
+        elif "toys" in name_lower:
+            dataset_key = "amazon-toys"
+        else:
+            dataset_key = name_lower.replace(" ", "-")
+        download_dataset(dataset_key, DATA_DIR)
         
         # Load data
         self.sequences, self.item2idx, self.item_meta = load_dataset(self.config)
