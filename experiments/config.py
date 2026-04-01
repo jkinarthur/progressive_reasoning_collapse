@@ -198,3 +198,9 @@ ABLATION_CONFIGS = {
     "no_adaptive_depth": {"collapse_reg": True, "evidence_reg": True, "adaptive_depth": False, "adaptive_width": True},
     "no_adaptive_width": {"collapse_reg": True, "evidence_reg": True, "adaptive_depth": True, "adaptive_width": False},
 }
+
+# =============================================================================
+# Default Run Settings
+# =============================================================================
+DEFAULT_DATASETS = ["ml-1m"]
+ALL_EXPERIMENTS = [1, 2, 3, 4, 5, 6]
