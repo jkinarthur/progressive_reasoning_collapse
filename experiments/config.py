@@ -13,7 +13,7 @@ from pathlib import Path
 # =============================================================================
 # Path Configuration
 # =============================================================================
-ROOT_DIR = Path(__file__).parent.parent
+ROOT_DIR = Path(__file__).parent
 DATA_DIR = ROOT_DIR / "data"
 RESULTS_DIR = ROOT_DIR / "results"
 CHECKPOINTS_DIR = ROOT_DIR / "checkpoints"
