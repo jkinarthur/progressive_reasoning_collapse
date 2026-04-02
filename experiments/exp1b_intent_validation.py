@@ -341,14 +341,19 @@ class Experiment1b:
             if not hs_list:
                 continue
 
-            token_hs = hs_list[-1]                       # (B, T, d)
+            token_hs = hs_list[-1]                       # (B, T', d) — T' may differ from T after compression
+            T_actual = token_hs.size(1)
             # Squared distance of each token to the cluster centre
-            dists = ((token_hs - center.unsqueeze(0).unsqueeze(0)) ** 2).sum(dim=-1)  # (B, T)
+            dists = ((token_hs - center.unsqueeze(0).unsqueeze(0)) ** 2).sum(dim=-1)  # (B, T')
 
             # Zero attention mask for the 20% of tokens closest to the centre
-            threshold = torch.quantile(dists.view(B * T), 0.20)
-            perturb_mask = mask.float()
-            perturb_mask[dists <= threshold] = 0.0
+            threshold = torch.quantile(dists.reshape(-1), 0.20)
+            # Build perturb mask aligned to original sequence length
+            perturb_mask = mask.float().clone()          # (B, T)
+            # Only mask positions that exist in the compressed output
+            mask_slice = mask[:, :T_actual].float().clone()
+            mask_slice[dists <= threshold] = 0.0
+            perturb_mask[:, :T_actual] = mask_slice
 
             with torch.no_grad():
                 perturbed_outputs = model(iids, perturb_mask.float(), return_hidden_states=False)
