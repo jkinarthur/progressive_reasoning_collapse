@@ -320,7 +320,7 @@ def main():
             return str(obj)  # fallback: stringify unknown types
     
     with open(results_file, 'w') as f:
-        json.dump(convert_for_json(all_results), f, indent=2)
+        json.dump(convert_for_json(all_results), f, indent=2, default=str)
     
     print("\n" + "="*70)
     print("EXPERIMENT SUITE COMPLETED")
