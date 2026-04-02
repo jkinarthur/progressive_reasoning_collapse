@@ -429,8 +429,117 @@ class Experiment6:
         
         print(f"All plots saved to {save_dir}")
 
+    # =========================================================================
+    # R11: Cluster Statistics Table
+    # =========================================================================
+    def compute_cluster_statistics(
+        self,
+        num_samples: int = 500,
+        num_clusters: int = 5,
+        layers_to_analyse: Optional[List[int]] = None,
+    ) -> "pd.DataFrame":
+        """
+        Compute and save a cluster statistics table for key layers.
 
-def run_experiment_6(
+        For each model × layer combination, report:
+          - Number of active clusters (non-empty after K-means)
+          - Mean intra-cluster distance (compactness)
+          - Inter-cluster distance (mean pairwise centroid distance)
+          - Silhouette score (cluster quality in [-1, 1])
+
+        Results are saved as:
+          tables/exp6_cluster_statistics.{csv,tex}
+        """
+        import pandas as pd
+        from sklearn.cluster import KMeans
+        from sklearn.metrics import silhouette_score
+        from sklearn.metrics.pairwise import euclidean_distances
+
+        if layers_to_analyse is None:
+            layers_to_analyse = [0, 3, 6, 9, 11]
+
+        rows = []
+
+        for model_name, layer_reps in self.representations.items():
+            for layer_idx in layers_to_analyse:
+                if layer_idx not in layer_reps:
+                    continue
+
+                reps = layer_reps[layer_idx]    # (N, d)
+                N    = reps.shape[0]
+                if N < num_clusters + 1:
+                    continue
+
+                kmeans  = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
+                labels  = kmeans.fit_predict(reps)
+                centers = kmeans.cluster_centers_          # (K, d)
+
+                # Active clusters
+                active = int(len(np.unique(labels)))
+
+                # Mean intra-cluster distance
+                intra_dists = []
+                for k in range(num_clusters):
+                    mask = labels == k
+                    if mask.sum() > 1:
+                        pts = reps[mask]
+                        c   = centers[k]
+                        intra_dists.append(float(np.mean(np.linalg.norm(pts - c, axis=1))))
+                mean_intra = float(np.mean(intra_dists)) if intra_dists else float("nan")
+
+                # Mean inter-cluster distance (pairwise centroid)
+                pairwise = euclidean_distances(centers)
+                mask_upper = np.triu(np.ones_like(pairwise, dtype=bool), k=1)
+                mean_inter = float(pairwise[mask_upper].mean()) if mask_upper.any() else float("nan")
+
+                # Silhouette score (subsample for speed)
+                sil_idx = np.random.choice(N, size=min(1000, N), replace=False)
+                try:
+                    sil = float(silhouette_score(reps[sil_idx], labels[sil_idx]))
+                except Exception:
+                    sil = float("nan")
+
+                rows.append({
+                    "Model":            model_name,
+                    "Layer":            layer_idx,
+                    "Active Clusters":  active,
+                    "Intra-Dist":       f"{mean_intra:.4f}",
+                    "Inter-Dist":       f"{mean_inter:.4f}",
+                    "Silhouette Score": f"{sil:.4f}",
+                })
+
+        import pandas as pd
+        df = pd.DataFrame(rows)
+
+        from config import TABLES_DIR
+        TABLES_DIR.mkdir(parents=True, exist_ok=True)
+        df.to_csv(TABLES_DIR / "exp6_cluster_statistics.csv", index=False)
+        with open(TABLES_DIR / "exp6_cluster_statistics.tex", "w") as f:
+            f.write(df.to_latex(index=False, escape=True))
+        print(f"[Exp6] Cluster statistics table → {TABLES_DIR / 'exp6_cluster_statistics.csv'}")
+        return df
+
+    def plot_all(self, save_dir: Path = FIGURES_DIR):
+        """Generate all visualizations including R11 cluster statistics."""
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        print("\nGenerating visualizations...")
+
+        self.plot_layerwise_collapse(save_dir)
+        print("  - Layerwise collapse visualization created")
+
+        self.plot_evidence_divergence(save_dir)
+        print("  - Evidence divergence visualization created")
+
+        self.plot_collapse_progression(save_dir)
+        print("  - Collapse progression plot created")
+
+        # R11: Cluster statistics table
+        if self.representations:
+            self.compute_cluster_statistics()
+            print("  - Cluster statistics table created (R11)")
+
+        print(f"All plots saved to {save_dir}")
     datasets: List[str] = ['ml-1m'],
     device: str = "cuda",
     num_samples: int = 500

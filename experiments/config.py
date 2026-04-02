@@ -137,6 +137,12 @@ DATASET_CONFIGS = {
         min_interactions=10,
         max_seq_len=50
     ),
+    "mind": DatasetConfig(
+        name="MIND",
+        path="data/mind",
+        min_interactions=5,
+        max_seq_len=50
+    ),
 }
 
 
@@ -172,7 +178,24 @@ def get_experiment_config(experiment_name: str, dataset_name: str = "ml-1m") -> 
         pass
         
     elif experiment_name == "exp6_visualization":
-        # Experiment 6: Layerwise Collapse Visualization
+        # Experiment 6: Layerwise Collapse Visualization (R11)
+        pass
+
+    elif experiment_name == "exp1b_intent_validation":
+        # Experiment 1b: Cluster semantic alignment + Jacobian spectral norm
+        # (R1 + R2)
+        pass
+
+    elif experiment_name == "exp7_t5_large":
+        # Experiment 7: T5-Large LLM experiments (R3)
+        training_config.batch_size = 16           # T5-Large needs smaller batches
+
+    elif experiment_name == "exp8_robustness":
+        # Experiment 8: Robustness analysis (R9)
+        pass
+
+    elif experiment_name == "exp9_failure_modes":
+        # Experiment 9: Failure mode analysis (R10)
         pass
     
     return ExperimentConfig(
@@ -203,4 +226,10 @@ ABLATION_CONFIGS = {
 # Default Run Settings
 # =============================================================================
 DEFAULT_DATASETS = ["ml-1m"]
-ALL_EXPERIMENTS = [1, 2, 3, 4, 5, 6]
+
+# Core experiments (original 1–6) plus new reviewer-required experiments:
+#   "1b" = Intent validation + Jacobian spectral norm (R1, R2)
+#   7    = T5-Large LLM experiments (R3)
+#   8    = Robustness analysis (R9)
+#   9    = Failure mode analysis (R10)
+ALL_EXPERIMENTS = [1, "1b", 2, 3, 4, 5, 6, 7, 8, 9]

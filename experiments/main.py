@@ -100,13 +100,53 @@ def run_experiment_6(datasets: list, device: str):
     return exp6_runner(datasets=datasets, device=device)
 
 
+def run_experiment_1b(datasets: list, device: str):
+    """Run Experiment 1b: Intent Validation + Jacobian Spectral Norm (R1, R2)"""
+    from exp1b_intent_validation import run_experiment_1b as exp1b_runner
+    print("\n" + "="*70)
+    print("EXPERIMENT 1b: Latent Intent Validation + Jacobian Spectral Norm (R1+R2)")
+    print("="*70)
+    return exp1b_runner(datasets=datasets, device=device)
+
+
+def run_experiment_7(datasets: list, device: str):
+    """Run Experiment 7: T5-Large LLM Experiments (R3)"""
+    from exp7_t5_large import run_experiment_7 as exp7_runner
+    print("\n" + "="*70)
+    print("EXPERIMENT 7: T5-Large LLM Experiments (R3)")
+    print("="*70)
+    return exp7_runner(datasets=datasets, device=device)
+
+
+def run_experiment_8(datasets: list, device: str):
+    """Run Experiment 8: Robustness Analysis (R9)"""
+    from exp8_robustness import run_experiment_8 as exp8_runner
+    print("\n" + "="*70)
+    print("EXPERIMENT 8: Robustness Analysis (R9)")
+    print("="*70)
+    return exp8_runner(datasets=datasets, device=device)
+
+
+def run_experiment_9(datasets: list, device: str):
+    """Run Experiment 9: Failure Mode Analysis (R10)"""
+    from exp9_failure_modes import run_experiment_9 as exp9_runner
+    print("\n" + "="*70)
+    print("EXPERIMENT 9: Failure Mode Analysis (R10)")
+    print("="*70)
+    return exp9_runner(datasets=datasets, device=device)
+
+
 EXPERIMENT_RUNNERS = {
-    1: run_experiment_1,
-    2: run_experiment_2,
-    3: run_experiment_3,
-    4: run_experiment_4,
-    5: run_experiment_5,
-    6: run_experiment_6,
+    1:    run_experiment_1,
+    "1b": run_experiment_1b,
+    2:    run_experiment_2,
+    3:    run_experiment_3,
+    4:    run_experiment_4,
+    5:    run_experiment_5,
+    6:    run_experiment_6,
+    7:    run_experiment_7,
+    8:    run_experiment_8,
+    9:    run_experiment_9,
 }
 
 
@@ -128,14 +168,18 @@ Examples:
         '--experiments', '-e',
         nargs='+',
         default=['all'],
-        help='Experiments to run: "all" or space-separated numbers (1-6)'
+        help=(
+            'Experiments to run: "all" or space-separated IDs. '
+            'Original: 1 2 3 4 5 6. '
+            'New (reviewer): 1b 7 8 9'
+        )
     )
-    
+
     parser.add_argument(
         '--datasets', '-d',
         nargs='+',
         default=['ml-1m'],
-        choices=['ml-1m', 'amazon-beauty', 'amazon-toys', 'yelp'],
+        choices=['ml-1m', 'amazon-beauty', 'amazon-toys', 'yelp', 'mind'],
         help='Datasets to use'
     )
     
@@ -198,10 +242,14 @@ def main():
     
     # Determine experiments to run
     if 'all' in args.experiments:
-        experiments_to_run = list(range(1, 7))
+        experiments_to_run = list(ALL_EXPERIMENTS)
     else:
-        experiments_to_run = [int(e) for e in args.experiments]
-    
+        # Parse IDs: '1b' stays as string, numeric IDs become ints
+        experiments_to_run = [
+            e if e == '1b' else int(e)
+            for e in args.experiments
+        ]
+
     print(f"\nExperiments to run: {experiments_to_run}")
     print(f"Datasets: {args.datasets}")
     print(f"Device: {device}")
@@ -218,7 +266,7 @@ def main():
     
     for exp_num in experiments_to_run:
         if exp_num not in EXPERIMENT_RUNNERS:
-            print(f"Warning: Experiment {exp_num} not found, skipping")
+            print(f"Warning: Experiment {exp_num!r} not found, skipping")
             continue
         
         try:

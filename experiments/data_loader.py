@@ -228,6 +228,111 @@ def load_yelp(data_path: Path, min_interactions: int = 5) -> Tuple[Dict, Dict, D
     return filtered_sequences, item2idx, item_meta
 
 
+# =============================================================================
+# MIND: Microsoft News Recommendation Dataset  (R8)
+# =============================================================================
+def load_mind(data_path: Path, min_interactions: int = 5) -> Tuple[Dict, Dict, Dict]:
+    """
+    Load the MIND (Microsoft News Recommendation) dataset.
+
+    Expected directory layout (download from
+    https://msnews.github.io/ and place files here):
+        data/mind/
+            behaviors.tsv   — user click history: ImpressionID, UserID, Time,
+                              History (space-separated news IDs), Impressions
+            news.tsv        — item metadata: NewsID, Category, Subcategory,
+                              Title, Abstract, URL, Title_entities, …
+
+    If the dataset is not found, a clear error message is printed and
+    empty dictionaries are returned so that the rest of the pipeline can
+    fail gracefully.
+
+    Returns:
+        user_sequences : {user_id -> [news_id_int, …]}
+        item2idx       : {news_id_str -> int}
+        item_meta      : {news_id_str -> {'title': str, 'category': str}}
+    """
+    behaviors_file = data_path / "behaviors.tsv"
+    news_file      = data_path / "news.tsv"
+
+    if not behaviors_file.exists() or not news_file.exists():
+        print(
+            f"[MIND] Dataset files not found in {data_path}.\n"
+            "  Please download MIND from https://msnews.github.io/ and place\n"
+            "  'behaviors.tsv' and 'news.tsv' in the data/mind/ directory.\n"
+            "  Returning empty dictionaries."
+        )
+        return {}, {}, {}
+
+    # ---- Load news metadata -------------------------------------------------
+    item_meta: Dict = {}
+    with open(news_file, "r", encoding="utf-8") as f:
+        for line in f:
+            parts = line.strip().split("\t")
+            if len(parts) < 4:
+                continue
+            news_id  = parts[0]
+            category = parts[1]
+            title    = parts[3] if len(parts) > 3 else news_id
+            item_meta[news_id] = {"title": title, "category": [category]}
+
+    # ---- Load click behaviors -----------------------------------------------
+    user_sequences: Dict[str, List] = defaultdict(list)
+
+    with open(behaviors_file, "r", encoding="utf-8") as f:
+        for line in f:
+            parts = line.strip().split("\t")
+            if len(parts) < 4:
+                continue
+            user_id = parts[1]
+            time_str = parts[2]
+            history  = parts[3].strip().split() if len(parts) > 3 else []
+            if not history:
+                continue
+            user_sequences[user_id].append((time_str, history))
+
+    # Keep only the longest / most recent behavior per user
+    filtered_sequences: Dict[str, List[str]] = {}
+    for user_id, records in user_sequences.items():
+        # Sort by time and merge all history items in chronological order
+        records.sort(key=lambda x: x[0])
+        merged: List[str] = []
+        seen: set = set()
+        for _, hist in records:
+            for nid in hist:
+                if nid not in seen:
+                    merged.append(nid)
+                    seen.add(nid)
+        if len(merged) >= min_interactions:
+            filtered_sequences[user_id] = merged
+
+    if not filtered_sequences:
+        print("[MIND] Warning: no users with sufficient interactions found.")
+        return {}, {}, {}
+
+    # ---- Build item index ---------------------------------------------------
+    all_items: set = set()
+    for seq in filtered_sequences.values():
+        all_items.update(seq)
+    item2idx: Dict[str, int] = {
+        item: idx for idx, item in enumerate(sorted(all_items), start=1)
+    }
+    item2idx["<PAD>"] = 0
+
+    # Convert string news IDs to integers
+    int_sequences: Dict[str, List[int]] = {}
+    for user_id, seq in filtered_sequences.items():
+        int_seq = [item2idx[nid] for nid in seq if nid in item2idx]
+        if len(int_seq) >= min_interactions:
+            int_sequences[user_id] = int_seq
+
+    print(
+        f"[MIND] Loaded {len(int_sequences):,} users, "
+        f"{len(item2idx):,} news items."
+    )
+    return int_sequences, item2idx, item_meta
+
+
 def load_dataset(config: DatasetConfig) -> Tuple[Dict, Dict, Dict]:
     """Load dataset based on configuration"""
 
@@ -239,6 +344,8 @@ def load_dataset(config: DatasetConfig) -> Tuple[Dict, Dict, Dict]:
         return load_amazon(data_path, config.min_interactions)
     elif "yelp" in config.name.lower():
         return load_yelp(data_path, config.min_interactions)
+    elif "mind" in config.name.lower():
+        return load_mind(data_path, config.min_interactions)
     else:
         raise ValueError(f"Unknown dataset: {config.name}")
 
