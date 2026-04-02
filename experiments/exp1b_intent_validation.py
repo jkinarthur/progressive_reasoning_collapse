@@ -602,7 +602,7 @@ class Experiment1b:
         self.results["jacobian_spectral_norm"] = jacobian_results
         self._plot_jacobian_norms(jacobian_results, compression_depth=6)
 
-        save_results(self.results, "exp1b_intent_validation", self.dataset_name)
+        save_results(self.results, "exp1b_intent_validation")
         return self.results
 
 

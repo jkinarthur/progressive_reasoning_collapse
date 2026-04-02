@@ -644,20 +644,29 @@ def evaluate_model_comprehensive(
 
 def save_results(results: Dict[str, Any], experiment_name: str, results_dir: Path = RESULTS_DIR):
     """Save experiment results"""
+    results_dir = Path(results_dir)  # ensure Path even if str passed
     results_dir.mkdir(parents=True, exist_ok=True)
     
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     results_path = results_dir / f"{experiment_name}_{timestamp}.json"
     
-    # Convert numpy types for JSON serialization
+    # Convert numpy types, DataFrames, and other non-serializable objects
     def convert(obj):
+        try:
+            import pandas as pd
+            if isinstance(obj, pd.DataFrame):
+                return obj.to_dict(orient='records')
+            if isinstance(obj, pd.Series):
+                return obj.tolist()
+        except ImportError:
+            pass
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        elif isinstance(obj, (np.float32, np.float64)):
+        elif isinstance(obj, (np.float32, np.float64, float)):
             return float(obj)
-        elif isinstance(obj, (np.int32, np.int64)):
+        elif isinstance(obj, (np.int32, np.int64, int)):
             return int(obj)
-        return obj
+        return str(obj)  # fallback: stringify anything else
     
     serializable = json.loads(json.dumps(results, default=convert))
     
