@@ -540,6 +540,9 @@ class Experiment6:
             print("  - Cluster statistics table created (R11)")
 
         print(f"All plots saved to {save_dir}")
+
+
+def run_experiment_6(
     datasets: List[str] = ['ml-1m'],
     device: str = "cuda",
     num_samples: int = 500

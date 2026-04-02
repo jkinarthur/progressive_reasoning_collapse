@@ -283,20 +283,41 @@ def main():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     results_file = RESULTS_DIR / f'combined_results_{timestamp}.json'
     
-    # Convert numpy arrays for JSON serialization
-    def convert_for_json(obj):
+    # Convert numpy arrays/torch tensors/DataFrames for JSON serialization
+    def convert_for_json(obj, _seen=None):
         import numpy as np
+        import torch
+        try:
+            import pandas as pd
+            if isinstance(obj, pd.DataFrame):
+                return obj.to_dict(orient='records')
+            if isinstance(obj, pd.Series):
+                return obj.tolist()
+        except ImportError:
+            pass
+        if _seen is None:
+            _seen = set()
+        obj_id = id(obj)
+        if obj_id in _seen:
+            return None  # break circular reference
+        if isinstance(obj, (dict, list)):
+            _seen.add(obj_id)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.floating):
             return float(obj)
         elif isinstance(obj, np.integer):
             return int(obj)
+        elif isinstance(obj, torch.Tensor):
+            return obj.detach().cpu().tolist()
         elif isinstance(obj, dict):
-            return {k: convert_for_json(v) for k, v in obj.items()}
+            return {k: convert_for_json(v, _seen) for k, v in obj.items()}
         elif isinstance(obj, list):
-            return [convert_for_json(v) for v in obj]
-        return obj
+            return [convert_for_json(v, _seen) for v in obj]
+        elif isinstance(obj, (int, float, str, bool, type(None))):
+            return obj
+        else:
+            return str(obj)  # fallback: stringify unknown types
     
     with open(results_file, 'w') as f:
         json.dump(convert_for_json(all_results), f, indent=2)

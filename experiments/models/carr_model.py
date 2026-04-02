@@ -648,7 +648,8 @@ class FullLLMModel(CARRModel):
         input_ids: Tensor,
         attention_mask: Optional[Tensor] = None,
         return_hidden_states: bool = False,
-        return_collapse_metrics: bool = False
+        return_collapse_metrics: bool = False,
+        **kwargs  # absorb any extra keyword args (e.g. compression_depth)
     ) -> Dict[str, Tensor]:
         # No compression
         return super().forward(

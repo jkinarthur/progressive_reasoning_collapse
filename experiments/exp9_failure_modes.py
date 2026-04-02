@@ -115,7 +115,7 @@ class Experiment9:
     def _compute_item_frequency(self) -> Dict[int, int]:
         """Count how often each item_id appears across all training sequences."""
         freq: Dict[int, int] = defaultdict(int)
-        for seq in self.data_module.train_sequences.values():
+        for seq in self.data_module.train_seqs.values():
             for item in seq:
                 freq[item] += 1
         return freq
@@ -130,7 +130,7 @@ class Experiment9:
         num_items = self.data_module.num_items
         bucket_size = max(1, num_items // 4)   # 4 intent buckets
         span: Dict[int, int] = {}
-        for uid, seq in self.data_module.test_sequences.items():
+        for uid, seq in self.data_module.test_seqs.items()
             buckets = set(item // bucket_size for item in seq if item > 0)
             span[uid] = len(buckets)
         return span
@@ -148,11 +148,11 @@ class Experiment9:
 
         sparse_user_ids: Set = {
             uid
-            for uid, seq in self.data_module.test_sequences.items()
+            for uid, seq in self.data_module.test_seqs.items()
             if len(seq) < self.SPARSE_THRESHOLD
         }
         print(f"  Sparse users: {len(sparse_user_ids)} / "
-              f"{len(self.data_module.test_sequences)}")
+              f"{len(self.data_module.test_seqs)}")
 
         if not sparse_user_ids:
             print("  No sparse users found with current threshold.")
@@ -208,7 +208,7 @@ class Experiment9:
             uid for uid, span in self._user_intent_span.items() if span <= 1
         }
         print(f"  Single-intent users: {len(single_intent_users)} / "
-              f"{len(self.data_module.test_sequences)}")
+              f"{len(self.data_module.test_seqs)}")
 
         if not single_intent_users:
             print("  No single-intent users found.")

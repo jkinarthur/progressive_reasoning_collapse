@@ -57,9 +57,10 @@ class CollapseMetricsComputer:
         """
         # Flatten if needed
         if hidden_states.dim() == 3:
-            hidden_states = hidden_states.view(-1, hidden_states.size(-1))
+            hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
         
         hidden_np = hidden_states.detach().cpu().numpy()
+        hidden_np = np.nan_to_num(hidden_np, nan=0.0, posinf=0.0, neginf=0.0)
         N, d = hidden_np.shape
         
         # Cluster if labels not provided
@@ -188,9 +189,10 @@ class CollapseMetricsComputer:
         - Silhouette score (cluster quality)
         """
         if hidden_states.dim() == 3:
-            hidden_states = hidden_states.view(-1, hidden_states.size(-1))
+            hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
         
         hidden_np = hidden_states.detach().cpu().numpy()
+        hidden_np = np.nan_to_num(hidden_np, nan=0.0, posinf=0.0, neginf=0.0)
         N, d = hidden_np.shape
         
         if N < self.num_clusters:

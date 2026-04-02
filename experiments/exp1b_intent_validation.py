@@ -351,7 +351,7 @@ class Experiment1b:
             perturb_mask[dists <= threshold] = 0.0
 
             with torch.no_grad():
-                perturbed_outputs = model(iids, perturb_mask.bool(), return_hidden_states=False)
+                perturbed_outputs = model(iids, perturb_mask.float(), return_hidden_states=False)
 
             logits = perturbed_outputs.get("logits", perturbed_outputs.get("scores"))
             if logits is None:
