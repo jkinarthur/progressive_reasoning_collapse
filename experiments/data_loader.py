@@ -189,15 +189,56 @@ def load_amazon(data_path: Path, min_interactions: int = 5) -> Tuple[Dict, Dict,
     return filtered_sequences, item2idx, item_meta
 
 
+def load_yelp(data_path: Path, min_interactions: int = 5) -> Tuple[Dict, Dict, Dict]:
+    """Load Yelp dataset from Kaggle review JSON"""
+
+    interactions_file = data_path / "interactions.json"
+
+    with open(interactions_file, 'r') as f:
+        data = json.load(f)
+
+    user_sequences = defaultdict(list)
+    item_meta = {}
+
+    for review in data:
+        user_id = review.get('user_id')
+        item_id = review.get('business_id')
+        timestamp = review.get('date', '1970-01-01')
+        if user_id is None or item_id is None:
+            continue
+        user_sequences[user_id].append((item_id, timestamp))
+        if item_id not in item_meta:
+            item_meta[item_id] = {'title': review.get('name', item_id), 'category': []}
+
+    filtered_sequences = {}
+    for user_id, interactions in user_sequences.items():
+        interactions.sort(key=lambda x: x[1])
+        if len(interactions) >= min_interactions:
+            filtered_sequences[user_id] = [item_id for item_id, _ in interactions]
+
+    all_items = set()
+    for seq in filtered_sequences.values():
+        all_items.update(seq)
+    item2idx = {item: idx for idx, item in enumerate(sorted(all_items), start=1)}
+    item2idx['<PAD>'] = 0
+
+    for user_id in filtered_sequences:
+        filtered_sequences[user_id] = [item2idx.get(item, 0) for item in filtered_sequences[user_id]]
+
+    return filtered_sequences, item2idx, item_meta
+
+
 def load_dataset(config: DatasetConfig) -> Tuple[Dict, Dict, Dict]:
     """Load dataset based on configuration"""
-    
+
     data_path = Path(config.path)
-    
+
     if "ml" in config.name.lower() or "movielens" in config.name.lower():
         return load_movielens(data_path, config.min_interactions)
     elif "amazon" in config.name.lower():
         return load_amazon(data_path, config.min_interactions)
+    elif "yelp" in config.name.lower():
+        return load_yelp(data_path, config.min_interactions)
     else:
         raise ValueError(f"Unknown dataset: {config.name}")
 
