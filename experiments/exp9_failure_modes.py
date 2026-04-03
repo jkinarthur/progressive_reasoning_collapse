@@ -130,7 +130,7 @@ class Experiment9:
         num_items = self.data_module.num_items
         bucket_size = max(1, num_items // 4)   # 4 intent buckets
         span: Dict[int, int] = {}
-        for uid, seq in self.data_module.test_seqs.items()
+        for uid, seq in self.data_module.test_seqs.items():
             buckets = set(item // bucket_size for item in seq if item > 0)
             span[uid] = len(buckets)
         return span
