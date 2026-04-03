@@ -178,7 +178,8 @@ class Experiment9:
 
                 sample_metrics = _topk_metrics(logits, tgts)
                 for i, m in enumerate(sample_metrics):
-                    uid = uids[i].item() if uids is not None else -1
+                    u = uids[i]
+                    uid = u.item() if isinstance(u, torch.Tensor) else u
                     if uid in sparse_user_ids or uid == -1:
                         sparse_hits.append(m["hr10"])
                         sparse_ndcg.append(m["ndcg10"])
@@ -234,7 +235,8 @@ class Experiment9:
 
                 sample_metrics = _topk_metrics(logits, tgts)
                 for i, m in enumerate(sample_metrics):
-                    uid = uids[i].item() if uids is not None else -1
+                    u = uids[i]
+                    uid = u.item() if isinstance(u, torch.Tensor) else u
                     if uid in single_intent_users or uid == -1:
                         si_hits.append(m["hr10"])
                         si_ndcg.append(m["ndcg10"])
