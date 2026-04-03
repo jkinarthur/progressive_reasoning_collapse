@@ -85,10 +85,11 @@ def evaluate_model(
         iids = batch["input_ids"].to(device)
         mask = batch["attention_mask"].to(device)
         tgts = batch["target"].to(device)
-        # Clamp targets to valid item range to prevent CUDA embedding assert
-        num_items = getattr(model, 'num_items', None) or (model.item_embedding.weight.size(0) if hasattr(model, 'item_embedding') else None)
-        if num_items is not None:
-            tgts = tgts.clamp(0, num_items - 1)
+        # Clamp input_ids to the model's actual embedding size (critical for
+        # cross-dataset transfer where target vocab > source embedding size)
+        if hasattr(model, 'item_embedding'):
+            emb_size = model.item_embedding.weight.size(0)
+            iids = iids.clamp(0, emb_size - 1)
 
         # --- Noise injection into the embedding layer -----------------------
         if noise_sigma > 0.0 and hasattr(model, "item_embedding"):
