@@ -327,9 +327,9 @@ class CARRModel(nn.Module):
         hidden_states = self.item_embedding(input_ids)
         hidden_states = self.position_encoding(hidden_states)
         
-        # Convert attention mask for transformer (0 = attend, 1 = ignore)
+        # Convert attention mask for transformer (True = ignore position)
         if attention_mask is not None:
-            transformer_mask = (1 - attention_mask).bool()
+            transformer_mask = ~attention_mask.bool()
         else:
             transformer_mask = None
         
@@ -416,7 +416,7 @@ class CARRModel(nn.Module):
         batch_size, seq_len, hidden_dim = hidden_states.shape
         
         # Flatten for clustering
-        flat_states = hidden_states.view(-1, hidden_dim)
+        flat_states = hidden_states.contiguous().view(-1, hidden_dim)
         
         # Simple k-means-style clustering (differentiable approximation)
         # For efficiency, use random subset if too large
@@ -482,7 +482,7 @@ class CARRModel(nn.Module):
         hidden_states = self.position_encoding(hidden_states)
         
         if attention_mask is not None:
-            transformer_mask = (1 - attention_mask).bool()
+            transformer_mask = ~attention_mask.bool()
         else:
             transformer_mask = None
         

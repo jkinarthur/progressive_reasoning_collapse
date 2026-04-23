@@ -157,7 +157,7 @@ class SASRecBlock(nn.Module):
         attn_out, _ = self.attention(
             x, x, x,
             attn_mask=causal_mask,
-            key_padding_mask=(1 - padding_mask).bool() if padding_mask is not None else None
+            key_padding_mask=(~padding_mask.bool()) if padding_mask is not None else None
         )
         x = x + self.dropout(attn_out)
         x = self.norm1(x)
