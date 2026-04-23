@@ -73,13 +73,26 @@ class Experiment3:
         num_items = self.data_module.num_items
         model_config = self.config.model
         
+        # Activate SGI for Amazon Beauty (sparse dataset)
+        use_sgi = "beauty" in self.dataset_name.lower()
+        carr = CARRModel(num_items, model_config, use_sgi=use_sgi)
+        
+        # Fit SGI centroids from item embeddings before training
+        if use_sgi:
+            print(f"  [SGI] Fitting cluster centroids for sparse dataset: {self.dataset_name}")
+            with torch.no_grad():
+                all_item_ids = torch.arange(1, num_items + 1, device=self.device)
+                item_embs = carr.item_embedding(all_item_ids).cpu()
+            carr.sgi.fit_centroids(item_embs)
+            carr.sgi.to(self.device)
+        
         models = {
             # ── Primary: LLM-based generative methods (all subject to PRC) ──
             'Full-LLM': FullLLMModel(num_items, model_config),
             'Fixed-Early (k=3)': FixedCompressionModel(num_items, ModelConfig(compression_depth=3)),
             'Fixed-Mid (k=6)': FixedCompressionModel(num_items, ModelConfig(compression_depth=6)),
             'Fixed-Late (k=9)': FixedCompressionModel(num_items, ModelConfig(compression_depth=9)),
-            'CARR': CARRModel(num_items, model_config),
+            'CARR': carr,
 
             # ── Modern LLM-based recommendation baselines (Revision 4) ──────
             'LLMRec': LLMRec(

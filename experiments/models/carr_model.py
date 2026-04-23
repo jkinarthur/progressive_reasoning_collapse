@@ -16,6 +16,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+from sklearn.cluster import KMeans
+import numpy as np
 
 from config import ModelConfig
 
@@ -207,6 +209,89 @@ class RegisterCompressor(nn.Module):
 
 
 # =============================================================================
+# Sparse Geometry Injection (SGI)
+# =============================================================================
+class SparseGeometryInjection(nn.Module):
+    """
+    SGI: seeds the initial hidden state with semantic cluster centroids
+    when interaction density is insufficient for multi-intent geometry to emerge.
+
+    Gate:  alpha(H) = sigmoid( -(R(0) - eps_sparse) / tau )
+    Inject: z_tilde(0) = z(0) + alpha * sum_c w_c(H) * v_c
+
+    Centroids v_c are pre-computed from item embeddings via k-means and fixed.
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        num_clusters: int = 5,
+        eps_sparse: float = 0.5,
+        tau: float = 0.1,
+    ):
+        super().__init__()
+        self.d_model = d_model
+        self.num_clusters = num_clusters
+        self.eps_sparse = eps_sparse
+        self.tau = tau
+
+        # Centroids are registered as a buffer (non-trainable, device-aware)
+        self.register_buffer(
+            'centroids',
+            torch.zeros(num_clusters, d_model)
+        )
+        self._centroids_fitted = False
+
+    # ------------------------------------------------------------------
+    def fit_centroids(self, item_embeddings: Tensor):
+        """
+        Run k-means on item embeddings to set cluster centroids.
+        Call once after model init, before training.
+
+        Args:
+            item_embeddings: (num_items, d_model) – all item embedding vectors
+        """
+        with torch.no_grad():
+            emb_np = item_embeddings.detach().cpu().float().numpy()
+            km = KMeans(n_clusters=self.num_clusters, n_init=10, random_state=42)
+            km.fit(emb_np)
+            centers = torch.tensor(km.cluster_centers_, dtype=torch.float32)
+            self.centroids.copy_(centers)
+        self._centroids_fitted = True
+
+    # ------------------------------------------------------------------
+    def forward(self, z0: Tensor, R0: float) -> Tensor:
+        """
+        Args:
+            z0:  (batch, seq_len, d_model) – layer-0 hidden states
+            R0:  scalar – R(0) score measured before injection
+
+        Returns:
+            z_tilde: (batch, seq_len, d_model) – geometry-seeded states
+        """
+        if not self._centroids_fitted:
+            return z0  # no-op until centroids are ready
+
+        # Soft injection gate  alpha in (0, 1)
+        alpha = torch.sigmoid(
+            torch.tensor(-(R0 - self.eps_sparse) / self.tau, device=z0.device)
+        )
+
+        # Cluster affinity weights  w_c(H): (batch, num_clusters)
+        # pool token embeddings then compute cosine-scaled dot product
+        pooled = z0.mean(dim=1)  # (batch, d_model)
+        logits = (pooled @ self.centroids.T) / (self.d_model ** 0.5)  # (batch, C)
+        w = torch.softmax(logits, dim=-1)  # (batch, C)
+
+        # Weighted sum of centroids: (batch, d_model)
+        injected = w @ self.centroids  # (batch, d_model)
+
+        # Broadcast to full sequence and gate
+        z_tilde = z0 + alpha * injected.unsqueeze(1)
+        return z_tilde
+
+
+# =============================================================================
 # CARR Model
 # =============================================================================
 class CARRModel(nn.Module):
@@ -223,11 +308,14 @@ class CARRModel(nn.Module):
     def __init__(
         self,
         num_items: int,
-        config: ModelConfig
+        config: ModelConfig,
+        use_sgi: bool = False,
+        sgi_eps_sparse: float = 0.5,
     ):
         super().__init__()
         self.config = config
         self.num_items = num_items
+        self.use_sgi = use_sgi
         
         # Item embedding
         self.item_embedding = nn.Embedding(
@@ -267,6 +355,13 @@ class CARRModel(nn.Module):
         
         # Output projection
         self.output_projection = nn.Linear(config.hidden_dim, num_items + 1, bias=False)
+        
+        # SGI module (optional, used for sparse datasets like Amazon Beauty)
+        self.sgi = SparseGeometryInjection(
+            d_model=config.hidden_dim,
+            num_clusters=config.num_intent_clusters,
+            eps_sparse=sgi_eps_sparse,
+        ) if use_sgi else None
         
         # Collapse monitoring components
         self.collapse_threshold_R = config.collapse_threshold_R
@@ -326,6 +421,13 @@ class CARRModel(nn.Module):
         # Embedding
         hidden_states = self.item_embedding(input_ids)
         hidden_states = self.position_encoding(hidden_states)
+        
+        # SGI: measure R(0) and inject cluster geometry if sparse regime
+        if self.sgi is not None and self.sgi._centroids_fitted:
+            with torch.no_grad():
+                layer0_metrics = self._compute_layer_collapse_metrics(hidden_states, None, -1)
+                R0 = layer0_metrics['reasoning_collapse_score'].item()
+            hidden_states = self.sgi(hidden_states, R0)
         
         # Convert attention mask for transformer (True = ignore position)
         if attention_mask is not None:
