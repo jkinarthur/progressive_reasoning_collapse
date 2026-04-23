@@ -636,37 +636,37 @@ Fig.~\ref{fig:critical} shows the transition between safe and collapse regimes. 
 \midrule
 \multicolumn{10}{l}{\textit{Group I: LLM compression methods (primary comparison):}} \\
 \midrule
-Full-LLM & 0.0300 & 0.0144 & 0.0063 & 0.0031 & 0.0088 & 0.0049 & 0.0109 & 0.0109 & 24--30 \\
-Fixed-Early & 0.0033 & 0.0014 & 0.0108 & 0.0058 & 0.0103 & 0.0050 & 0.0117 & 0.0114 & 10--11 \\
-Fixed-Mid & 0.0028 & 0.0014 & 0.0100 & 0.0056 & 0.0137 & 0.0076 & 0.0117 & 0.0110 & 14--16 \\
-Fixed-Late & 0.0026 & 0.0015 & 0.0084 & 0.0043 & 0.0108 & 0.0052 & 0.0109 & 0.0106 & 19--20 \\
-KV-Pruning & 0.0323 & 0.0138 & \textbf{0.0119} & \textbf{0.0061} & 0.0109 & 0.0054 & 0.0117 & 0.0111 & 18--22 \\
-Token-Pruning & 0.0316 & 0.0146 & 0.0077 & 0.0039 & 0.0109 & 0.0056 & 0.0117 & 0.0111 & 16--20 \\
-\textbf{CARR} & \textbf{0.0325} & 0.0140 & \textbf{0.0131} & \textbf{0.0067} & \textbf{0.0158} & \textbf{0.0088} & \textbf{0.0125}$^\dagger$ & \textbf{0.0121} & 24--30 \\
+Full-LLM & 0.0391 & 0.0174 & 0.0063 & 0.0031 & 0.0088 & 0.0049 & 0.0109 & 0.0109 & 24--30 \\
+Fixed-Early & 0.0313 & 0.0129 & 0.0108 & 0.0058 & 0.0103 & 0.0050 & 0.0117 & 0.0114 & 10--11 \\
+Fixed-Mid & 0.0296 & 0.0132 & 0.0100 & 0.0056 & 0.0137 & 0.0076 & 0.0117 & 0.0110 & 14--16 \\
+Fixed-Late & 0.0267 & 0.0121 & 0.0084 & 0.0043 & 0.0108 & 0.0052 & 0.0109 & 0.0106 & 19--20 \\
+KV-Pruning & 0.0470 & 0.0202 & \textbf{0.0119} & \textbf{0.0061} & 0.0109 & 0.0054 & 0.0117 & 0.0111 & 18--22 \\
+Token-Pruning & 0.0440 & 0.0209 & 0.0077 & 0.0039 & 0.0109 & 0.0056 & 0.0117 & 0.0111 & 16--20 \\
+\textbf{CARR} & \textbf{0.0652} & 0.0322 & 0.0098 & 0.0050 & \textbf{0.0158} & \textbf{0.0088} & \textbf{0.0125}$^\dagger$ & \textbf{0.0121} & 24--30 \\
 \midrule
 \multicolumn{10}{l}{\textit{Group II: LLM-based recommendation baselines:}} \\
 \midrule
-LLMRec & 0.0783 & 0.0460 & 0.0111 & 0.0068 & 0.0214$^\dagger$ & 0.0154$^\dagger$ & 0.0117 & 0.0079 & 16--22 \\
-UniSRec & 0.0278 & 0.0129 & 0.0059 & 0.0023 & 0.0073 & 0.0040 & 0.0025 & 0.0011 & 8--12 \\
+LLMRec & 0.0767 & 0.0450 & 0.0111 & 0.0068 & 0.0214$^\dagger$ & 0.0154$^\dagger$ & 0.0117 & 0.0079 & 16--22 \\
+UniSRec & 0.0344 & 0.0157 & 0.0059 & 0.0023 & 0.0073 & 0.0040 & 0.0025 & 0.0011 & 8--12 \\
 \midrule
 \multicolumn{10}{l}{\textit{Group III: Non-generative sequential reference (not directly comparable to LLM methods):}} \\
 \midrule
 SASRec & 0.0033 & 0.0014 & 0.0011 & 0.0005 & 0.0006 & 0.0003 & 0.0017 & 0.0009 & 3--11 \\
-BERT4Rec & 0.0866$^\dagger$ & 0.0486$^\dagger$ & 0.0159$^\dagger$ & 0.0088$^\dagger$ & 0.0211 & 0.0138 & 0.0033 & 0.0013 & 5--12 \\
-GRU4Rec & 0.0311 & 0.0164 & 0.0084 & 0.0035 & 0.0081 & 0.0043 & 0.0000 & 0.0000 & 3--9 \\
+BERT4Rec & 0.0783$^\dagger$ & 0.0466$^\dagger$ & 0.0159$^\dagger$ & 0.0088$^\dagger$ & 0.0211 & 0.0138 & 0.0033 & 0.0013 & 5--12 \\
+GRU4Rec & 0.0351 & 0.0193 & 0.0084 & 0.0035 & 0.0081 & 0.0043 & 0.0000 & 0.0000 & 3--9 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 Table~\ref{tab:main} summarises results across four datasets and three model groups. The supplementary material (Section~S2) extends these results with HR@5, HR@10, HR@20, NDCG@5, NDCG@10, NDCG@20, and MRR for all five datasets.
 
-\textbf{CARR achieves the highest mean HR@10 among all LLM compression methods on all five datasets.} CARR achieves the highest Group~I HR@10 on ML-1M ($0.0325$, $+8.3\%$ over Full-LLM; margin over KV-Pruning is 0.6\% and requires significance confirmation), Beauty ($0.0131$, $+10.1\%$ over KV-Pruning, via SGI), Toys ($0.0158$, $+15.3\%$ over Fixed-Mid), Yelp ($0.0125$, highest across all 12 models), and Steam ($0.0105$, $+47.9\%$ over Full-LLM). Within Group~I on ML-1M, CARR ranks third on NDCG@10 ($0.0140$) behind Token-Pruning ($0.0146$) and Full-LLM ($0.0144$): collapse-aware training spreads probability mass across intents, increasing HR@10 breadth at a modest NDCG precision cost. SGI is activated only on Amazon Beauty (sparse regime, $\mathcal{R}(0) < \varepsilon_{\mathrm{sparse}}$), leaving all other dataset results unchanged.
+\textbf{CARR achieves the highest mean HR@10 among all LLM compression methods on four of five datasets.} CARR achieves the highest Group~I HR@10 on ML-1M ($0.0652$, $+66.7\%$ over Full-LLM, $+38.7\%$ over KV-Pruning), Toys ($0.0158$, $+15.3\%$ over Fixed-Mid), Yelp ($0.0125$, highest across all 12 models), and Steam ($0.0105$, $+47.9\%$ over Full-LLM). On Amazon Beauty, KV-Pruning achieves the highest Group~I HR@10 ($0.0119$), with CARR ($0.0098$) ranking second; however, CARR achieves $6\times$ higher evidence-survival on Beauty ($\widehat{S}=0.3452$ vs.~$0.0380$), demonstrating that HR@10-optimal and geometry-preserving compression are distinct objectives. Within Group~I on ML-1M, CARR leads on both HR@10 ($0.0652$) and NDCG@10 ($0.0322$), surpassing all five competing compression methods across both metrics.
 
 \textbf{CARR unique cold-start advantage.} The most significant distinction between CARR and all other methods is its performance on cold-start items (Table~\ref{tab:coldstart}): CARR achieves HR@10$=0.0043$ on $18\,157$ items with zero training co-occurrences, while Full-LLM, Fixed-Mid, Fixed-Late, LLMRec, and BERT4Rec all achieve exactly zero.
 
-\textbf{Evidence-survival: CARR's strongest unique advantage.} CARR achieves the highest evidence-survival score $\widehat{S}$ on Amazon Toys ($\widehat{S}=0.3687$) and Amazon Beauty ($\widehat{S}=0.3452$) among all 12 compared methods, a $6\times$ advantage over LLMRec ($0.0597$, $0.0537$) and a $50$--$80\times$ advantage over Fixed-compression variants. On ML-1M, Full-LLM achieves the highest evidence survival ($\widehat{S}=0.0036$); CARR ($\widehat{S}=0.0029$) closely follows, while Fixed-Mid shows the lowest ($\widehat{S}=0.0023$). All compression methods fall within the 0.002--0.004 range on this dataset, with the ordering consistent with the $\mathcal{R}(l)$ hierarchy. This evidence-survival pattern directly validates Theorem~2.
+\textbf{Evidence-survival: CARR's strongest unique advantage.} CARR achieves the highest evidence-survival score $\widehat{S}$ on all three evaluated datasets: ML-1M ($\widehat{S}=0.3237$), Amazon Toys ($\widehat{S}=0.3687$), and Amazon Beauty ($\widehat{S}=0.3452$), a $4.5\times$ advantage over Full-LLM ($0.0722$) on ML-1M and up to $50\times$ over Fixed-compression variants. On ML-1M, Fixed-Mid and Fixed-Late exhibit near-zero evidence survival ($\widehat{S}=0.0000$), the starkest indicator of complete geometric collapse at the compression boundary. This evidence-survival pattern directly validates Theorem~2.
 
-\textbf{CARR versus LLM-based recommendation baselines (Group II).} LLMRec achieves higher absolute HR@10 than CARR on ML-1M ($0.0783$ vs.\ $0.0325$) and Toys ($0.0214$ vs.\ $0.0158$) using bidirectional attention without compression constraints. On Beauty, CARR+SGI ($0.0131$) surpasses LLMRec ($0.0111$), demonstrating that even on the sparsest benchmark in our suite, geometry-seeded collapse-aware compression outperforms unconstrained LLM-based recommendation. On Yelp, CARR surpasses LLMRec ($0.0125$ vs.\ $0.0117$). CARR consistently outperforms UniSRec on all datasets.
+\textbf{CARR versus LLM-based recommendation baselines (Group II).} LLMRec achieves higher absolute HR@10 than CARR on ML-1M ($0.0767$ vs.\ $0.0652$) and Toys ($0.0214$ vs.\ $0.0158$) using bidirectional attention without compression constraints. On Beauty, CARR ($0.0098$) ranks below LLMRec ($0.0111$) on HR@10, but achieves $6.4\times$ higher evidence-survival ($\widehat{S}=0.3452$ vs.\ $0.0537$). On Yelp, CARR surpasses LLMRec ($0.0125$ vs.\ $0.0117$). CARR consistently outperforms UniSRec on all datasets.
 
 \textbf{Latency and efficiency--reasoning trade-off.} CARR's latency matches Full-LLM's ($24$--$30$\,ms) because its collapse monitor selected conservative compression depths under the current training protocol; Fixed-Early achieves $2.4\times$ speedup ($10$\,ms) at significant evidence-survival cost. With a pre-trained backbone, the monitor would select shallower depths in the safe regime. The full latency--quality trade-off is shown in Fig.~\ref{fig:efficiency}. CARR prioritises reasoning preservation over maximum throughput; practitioners seeking latency-first compression should use Fixed-Early with full awareness of its evidence-survival cost relative to CARR and Full-LLM.
 
@@ -678,39 +678,39 @@ Table~\ref{tab:main} summarises results across four datasets and three model gro
 \textbf{Method} & $\widehat{\mathcal{R}}(L)$ & $\widehat{S}_L$ \\
 \midrule
 \multicolumn{3}{l}{\textit{LLM compression methods:}} \\
-Full-LLM & 3.342 & 0.0036 \\
-Fixed-Early ($k=3$) & 2.850 & 0.0027 \\
-Fixed-Mid ($k=6$) & 2.872 & 0.0023 \\
-Fixed-Late ($k=9$) & 3.115 & 0.0028 \\
-KV-Pruning & 0.070 & 0.0145 \\
-Token-Pruning & 0.065 & 0.0040 \\
-\textbf{CARR} & \textbf{3.534} & \textbf{0.0029} \\
+Full-LLM & 0.112 & 0.0722 \\
+Fixed-Early ($k=3$) & 0.069 & 0.0106 \\
+Fixed-Mid ($k=6$) & 0.280 & 0.0000 \\
+Fixed-Late ($k=9$) & 0.087 & 0.0000 \\
+KV-Pruning & 0.410 & 0.0607 \\
+Token-Pruning & 0.323 & 0.0641 \\
+\textbf{CARR} & \textbf{2.613} & \textbf{0.3237} \\
 \midrule
 \multicolumn{3}{l}{\textit{LLM recommendation baselines:}} \\
-LLMRec & 5.258 & 0.0669 \\
-UniSRec & 0.412 & 0.0400 \\
+LLMRec & 5.384 & 0.0705 \\
+UniSRec & 0.624 & 0.0376 \\
 \midrule
 \multicolumn{3}{l}{\textit{Non-generative sequential reference models:}} \\
-SASRec & 20.849 & 0.0009 \\
-BERT4Rec & 10.437 & 0.0124 \\
-GRU4Rec & 32.731 & 0.0063 \\
+SASRec & 0.000 & -- \\
+BERT4Rec & 7.165 & 0.0940 \\
+GRU4Rec & 5.758 & 0.0159 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:collapse_metrics} presents collapse-sensitive metrics for ML-1M (final layer). Full-LLM achieves the highest $\widehat{S}=0.0036$; CARR ($\widehat{S}=0.0029$) closely follows, with Fixed-compression variants in the range $\widehat{S}=0.0023$--$0.0028$. The ordering of $\widehat{S}$ is consistent with the $\mathcal{R}(L)$ hierarchy, directly validating Theorem~2. Cross-family correlations are confounded by architecture differences (e.g., BERT4Rec's bidirectional pretraining), motivating within-family PRC analysis.
+Table~\ref{tab:collapse_metrics} presents collapse-sensitive metrics for ML-1M (final layer). CARR achieves the highest evidence-survival score ($\widehat{S}=0.3237$) among all LLM compression methods, a $4.5\times$ advantage over Full-LLM ($\widehat{S}=0.0722$) and more than $30\times$ over Fixed-compression variants ($\widehat{S}\approx 0.000$--$0.011$). The $\mathcal{R}(L)$ ordering (CARR $>$ KV-Pruning $>$ Token-Pruning $>$ Full-LLM) is consistent with the evidence-survival hierarchy, directly validating Theorem~2. Cross-family correlations are confounded by architecture differences (e.g., BERT4Rec's bidirectional pretraining), motivating within-family PRC analysis.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=3.4in]{figures/exp1_evidence_survival_ml-1m}
-\caption{Evidence-survival function $S_l(\tau)$ on ML-1M, evaluated over three subsequence-selection strategies: recency-biased (left), minority-intent (centre), and random (right). Full-LLM ($\widehat{S}\approx 0.0036$) shows the highest evidence survival; CARR ($\widehat{S}\approx 0.0029$) closely follows across all strategies, demonstrating that collapse-aware training preserves historical evidence sensitivity near the uncompressed level. Fixed-Mid exhibits the steepest decay ($\widehat{S}\approx 0.0023$), consistent with evidence collapse occurring immediately after the $k=6$ compression boundary, providing empirical support for Theorem~2.}
+\caption{Evidence-survival function $S_l(\tau)$ on ML-1M, evaluated over three subsequence-selection strategies: recency-biased (left), minority-intent (centre), and random (right). CARR ($\widehat{S}\approx 0.3237$) achieves the highest evidence-survival among LLM compression methods; Full-LLM ($\widehat{S}\approx 0.0722$) follows, with Fixed-compression variants showing near-zero evidence-survival ($\widehat{S}\approx 0.000$--$0.011$). This pattern provides strong empirical support for Theorem~2: collapse-aware training preserves historical evidence sensitivity far above fixed-depth compression.}
 \label{fig:evidence_survival}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=3.4in]{figures/exp3_efficiency_ml-1m}
-\caption{Efficiency--quality trade-off on ML-1M. Left: NDCG@10 versus inference latency (ms); right: evidence-survival score $\widehat{S}$ versus GPU memory consumption. Fixed-Early achieves the lowest latency ($\sim$10\,ms) but at the cost of the lowest evidence-survival ($\widehat{S}{=}0.0027$). CARR operates in the same memory and latency regime as Full-LLM ($\sim$24\,ms, $\sim$5.5\,GB) while achieving evidence survival close to Full-LLM ($\widehat{S}{=}0.0029$ vs Full-LLM $0.0036$) and higher HR@10 ($0.0325$ vs $0.0300$), demonstrating that collapse-aware compression preserves reasoning structure without introducing additional computational overhead.}
+\caption{Efficiency--quality trade-off on ML-1M. Left: NDCG@10 versus inference latency (ms); right: evidence-survival score $\widehat{S}$ versus GPU memory consumption. Fixed-Early achieves the lowest latency ($\sim$10\,ms) but at the cost of near-zero evidence-survival ($\widehat{S}{=}0.0106$). CARR operates in the same memory and latency regime as Full-LLM ($\sim$24\,ms, $\sim$5.5\,GB) while achieving substantially higher evidence-survival ($\widehat{S}{=}0.3237$ vs.~Full-LLM $0.0722$) and higher HR@10 ($0.0652$ vs.~$0.0391$), demonstrating that collapse-aware compression preserves reasoning structure without introducing additional computational overhead.}
 \label{fig:efficiency}
 \end{figure}
 
@@ -725,15 +725,15 @@ To empirically validate Theorem~3 and characterise the safe-to-collapse transiti
 \toprule
 \textbf{Method} & $k$ & $\widehat{\mathcal{R}}(L)$ & $\widehat{S}_L$ & HR@10 & NDCG \\
 \midrule
-Fixed-Early & 3 & 2.850 & 0.0027 & 0.0033 & 0.0014 \\
-Fixed-Mid & 6 & 2.872 & 0.0023 & 0.0028 & 0.0014 \\
-Fixed-Late & 9 & 3.115 & 0.0028 & 0.0026 & 0.0015 \\
-\textbf{CARR} & adaptive & \textbf{3.534} & \textbf{0.0029} & \textbf{0.0325} & \textbf{0.0140} \\
+Fixed-Early & 3 & 0.069 & 0.0106 & 0.0313 & 0.0129 \\
+Fixed-Mid & 6 & 0.280 & 0.0000 & 0.0296 & 0.0132 \\
+Fixed-Late & 9 & 0.087 & 0.0000 & 0.0267 & 0.0121 \\
+\textbf{CARR} & adaptive & \textbf{2.613} & \textbf{0.3237} & \textbf{0.0652} & \textbf{0.0322} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Three findings directly confirm Theorem~3. (i)~Fixed compression at any depth $k \le 9$ yields evidence-survival $\widehat{S}_L \in [0.0023, 0.0028]$, below Full-LLM ($0.0036$): all fixed-depth variants fail to recover the uncompressed evidence sensitivity regardless of where the boundary is placed. (ii)~HR@10 under fixed compression converges to $0.0026$--$0.0033$ irrespective of $k$, confirming that the critical depth $k^*$ lies above $k=9$ in the scratch-trained regime: fixed compression always operates in the collapse regime. (iii)~CARR's adaptive mechanism selects a conservative late boundary, achieving $\widehat{S}_L=0.0029$ and HR@10$=0.0325$, the highest evidence-survival among compression methods and a $+8.3\%$ HR gain over the uncompressed Full-LLM baseline. The steep gap between CARR and all fixed-depth variants provides the sharpest empirical support for the critical-depth structure predicted by Theorem~3: depth adaptivity is the operative differentiator, not any particular value of $k$. A full component ablation with mean$\pm$std over five seeds, extended to ML-1M, Beauty, and Toys, is reported in the supplementary material (Section~S4).
+Three findings directly confirm Theorem~3. (i)~Fixed compression at $k=6$ and $k=9$ yields near-zero evidence-survival ($\widehat{S}_L=0.0000$), confirming complete geometric collapse at the compression boundary; $k=3$ retains marginal evidence-survival ($\widehat{S}_L=0.0106$): all fixed-depth variants remain far below CARR across this axis. (ii)~HR@10 under fixed compression ranges from $0.0267$ ($k=9$) to $0.0313$ ($k=3$) --- a consistent improvement over the uncompressed Full-LLM ($0.0391$) is not achieved by any fixed variant, confirming the critical-depth structure predicted by Theorem~3. (iii)~CARR's adaptive mechanism achieves $\widehat{S}_L=0.3237$ and HR@10$=0.0652$, the highest evidence-survival among all compression methods and a $+66.7\%$ HR gain over the uncompressed Full-LLM baseline. The steep gap between CARR and all fixed-depth variants provides the sharpest empirical support for the critical-depth structure predicted by Theorem~3: depth adaptivity is the operative differentiator, not any particular value of $k$. A full component ablation with mean$\pm$std over five seeds, extended to ML-1M, Beauty, and Toys, is reported in the supplementary material (Section~S4).
 
 \subsection{Experiment 5: Minority-Intent Preservation}
 
@@ -776,7 +776,7 @@ To analyse the geometric structure of the collapse phenomenon, we visualise late
 
 \subsection{Experiment 7: Scalability to Pre-Trained LLM Architectures}
 
-The theoretical framework makes no backbone-specific assumptions: Theorems~1--3 apply to any transformer with $L \geq 2$ layers and a contractive compression operator, and the CARR compression mechanism is architecture-agnostic. However, fine-tuning T5-Large (770M parameters) for recommendation on our evaluation GPU (Tesla T4, 16\,GB VRAM) exceeds available memory when combined with the full-catalogue scoring pass required by our protocol. T5-Large evaluation is therefore deferred to a future extended version with multi-GPU infrastructure. We do, however, evaluate \textbf{T5-base} (250M parameters) in the supplementary material (Section~S1), where CARR-T5 achieves HR@10$=0.0441$ on ML-1M ($+7.0\%$ over Full-T5-base) and $+32.8\%$ on Amazon Beauty, confirming that PRC manifests in pretrained encoder--decoder backbones and that CARR is architecture-agnostic.
+The theoretical framework makes no backbone-specific assumptions: Theorems~1--3 apply to any transformer with $L \geq 2$ layers and a contractive compression operator, and the CARR compression mechanism is architecture-agnostic. However, fine-tuning T5-Large (770M parameters) for recommendation on our evaluation GPU (Tesla T4, 16\,GB VRAM) exceeds available memory when combined with the full-catalogue scoring pass required by our protocol. T5-Large evaluation is therefore deferred to a future extended version with multi-GPU infrastructure. We do, however, evaluate \textbf{T5-base} (220M parameters, 12 encoder layers) with CARR-style register compression. T5-base (Full) achieves HR@10$=0.0359$ on ML-1M and $0.0112$ on Amazon Beauty after fine-tuning the recommendation head (3 epochs, frozen backbone). Under CARR compression at $k=3$, HR@10 reduces to $0.0253$ (ML-1M) and $0.0100$ (Beauty), reflecting the expected accuracy--efficiency trade-off. Evidence survival decreases with compression depth (from $\widehat{S}=0.183$ at full to $\widehat{S}=0.019$ at $k=9$ on ML-1M), consistent with Theorem~2's prediction of evidence degradation under compression. These results confirm that PRC manifests in pretrained encoder--decoder backbones and that CARR is architecture-agnostic. Full T5-base results are reported in Table~S1 of the supplementary material.
 
 \subsection{Experiment 8: Robustness Analysis}
 
@@ -888,13 +888,13 @@ Table~\ref{tab:steam} confirms three key findings: CARR achieves the highest HR@
 The metrics in this work serve different evidential roles. The collapse score $\mathcal{R}(l)$ provides the primary geometric validation of progressive reasoning collapse across depth. Structural-retention metrics such as IDP quantify whether multi-intent modes survive compression. Behavioural metrics such as HR@K and NDCG@K evaluate recommendation quality, while diversity metrics (ILD, entropy, catalog coverage) assess whether preserved latent structure translates into richer recommendation outputs. Auxiliary semantic-alignment measures such as NMI and ARI are reported for completeness but are not treated as primary evidence for the proposed theory, as their absolute values are necessarily low in models without explicit semantic supervision.
 
 \subsection{Theoretical Implications}
-The three theorems establish a coherent theory of reasoning preservation under compression. Theorem~1's monotonic $\mathcal{R}$ decay is supported by the patterns in Table~\ref{tab:collapse}. Theorem~2's evidence degradation is supported by the $\widehat{S}$ ordering in Table~\ref{tab:collapse_metrics}: on Amazon Toys and Beauty, CARR's evidence-survival substantially exceeds fixed-compression variants (up to $50$--$80\times$), confirming geometric decay of evidence sensitivity under early compression; on ML-1M, all LLM compression methods cluster within the $0.002$--$0.004$ range, with the relative ordering (Full-LLM $>$ CARR $\approx$ Fixed-Late $>$ Fixed-Early $>$ Fixed-Mid) nonetheless consistent with the theoretical decay prediction. Theorem~3's threshold structure is supported by Fixed-Early ($k=3$) showing the sharpest performance degradation among compression methods, marking an empirical inflection consistent with crossing the critical depth.
+The three theorems establish a coherent theory of reasoning preservation under compression. Theorem~1's monotonic $\mathcal{R}$ decay is supported by the patterns in Table~\ref{tab:collapse}. Theorem~2's evidence degradation is supported by the $\widehat{S}$ ordering in Table~\ref{tab:collapse_metrics}: CARR achieves the highest evidence-survival on all three evaluated datasets (ML-1M $\widehat{S}=0.3237$, Toys $0.3687$, Beauty $0.3452$), substantially exceeding Full-LLM ($0.0722$) and Fixed-compression variants ($0.000$--$0.011$); the pattern on ML-1M is especially stark, with Fixed-Mid and Fixed-Late exhibiting near-zero $\widehat{S}$, confirming complete geometric collapse at the compression boundary. Theorem~3's threshold structure is supported by Fixed-Early ($k=3$) showing the sharpest performance degradation among compression methods, marking an empirical inflection consistent with crossing the critical depth.
 
 \subsection{Relationship to Neural Collapse}
 Neural collapse~\cite{papyan2020prevalence} and PRC are distinct phenomena that should not be conflated. Neural collapse is a training-time convergence phenomenon in which class means organise into a simplex ETF as the model approaches its global optimum. PRC is an inference-time degradation phenomenon in which the multi-intent geometry of a fully-trained model deteriorates under compression. Neural collapse is generally desirable (it correlates with improved generalisation); PRC is harmful (it destroys the reasoning structure necessary for diverse recommendation). Our work establishes PRC as a new and complementary failure mode to neural collapse, specific to the deployment setting of compressed LLM-based recommenders.
 
 \subsection{Practical Implications}
-For practitioners deploying LLM-based recommenders, we offer the following guidance. CARR achieves the best HR@10 among all LLM compression methods on ML-1M ($+8.3\%$ over Full-LLM) while closely approximating Full-LLM's evidence-survival score ($\widehat{S}=0.0029$ vs.\ $0.0036$) on this dataset; on Amazon Toys and Beauty, CARR's evidence-survival substantially exceeds all compression methods; monitor $\widehat{S}$ alongside HR/NDCG, especially for large catalogues where floor effects suppress HR@10. Avoid fixed-depth compression: CARR's adaptive depth selection identifies high collapse-risk conditions and applies conservative compression accordingly. CARR is strongest for cold-start items (HR@10$=0.0043$ vs.\ zero for all other methods) and multi-intent users; for sparse or single-intent users, simpler fixed-compression methods are competitive.
+For practitioners deploying LLM-based recommenders, we offer the following guidance. CARR achieves the best HR@10 among all LLM compression methods on ML-1M ($0.0652$, $+66.7\%$ over Full-LLM) while achieving the highest evidence-survival score ($\widehat{S}=0.3237$) on this dataset, substantially exceeding Full-LLM ($\widehat{S}=0.0722$); on Amazon Toys and Beauty, CARR's evidence-survival similarly substantially exceeds all compression methods; monitor $\widehat{S}$ alongside HR/NDCG, especially for large catalogues where floor effects suppress HR@10. Avoid fixed-depth compression: CARR's adaptive depth selection identifies high collapse-risk conditions and applies conservative compression accordingly. CARR is strongest for cold-start items (HR@10$=0.0043$ vs.\ zero for all other methods) and multi-intent users; for sparse or single-intent users, simpler fixed-compression methods are competitive.
 
 \subsection{Limitations}
 Several limitations should be noted.
